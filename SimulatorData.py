@@ -23,7 +23,7 @@ class DataLoader():
             os.makedirs(output_folder)
         
         self.output_file = os.path.join(output_folder, output_file)
-    
+
 
     def create_hdf5_buffer(self):
         
