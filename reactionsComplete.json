@@ -83,6 +83,12 @@
         "id": 28, "equation": "CO2_F -> CO2 + V_F", "rate": "desorption", "gamma": false
     },
 
+
+
+
+
+
+    
     {
         "id": 29, "equation": "CO + V_F -> CO_F", "rate": "adsorption", "gamma": false
     },

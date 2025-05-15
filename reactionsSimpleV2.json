@@ -106,5 +106,57 @@
     {
         "id": 27, "equation": "O_F + Odb_S -> O2 + V_F + Vdb_S", "rate": "recomb_LH", "gamma": true,
         "model_dict": {"SF": 1.0, "E": 30.0, "nu_D": 1e13, "factor": 0.75}
+    },
+
+
+    {
+        "id": 28, "equation": "CO2 + V_F -> CO2_F", "rate": "adsorption", "gamma": false,
+        "model_dict": {"SF": 1.0, "E": 0.0}
+    },
+    {
+        "id": 29, "equation": "CO2_F -> CO2 + V_F", "rate": "desorption", "gamma": false,
+        "model_dict": {"SF": 1.0, "E": 17.5, "nu_D": 1e13, "factor": 1.0}
+    },
+
+
+    {
+        "id": 30, "equation": "CO + V_F -> CO_F", "rate": "adsorption", "gamma": false,
+        "model_dict": {"SF": 1.0, "E": 0.0}
+    },
+    {
+        "id": 31, "equation": "CO_F -> CO + V_F", "rate": "desorption", "gamma": false,
+        "model_dict": {"SF": 1.0, "E": 17.5, "nu_D": 1e13, "factor": 0.75}
+    },
+    {
+        "id": 32, "equation": "CO + V_S -> CO_S", "rate": "adsorption", "gamma": false,
+        "model_dict": {"SF": 1e-3, "E": 0.0}
+    },
+    {
+        "id": 33, "equation": "CO + O_F -> CO2 + V_F", "rate": "diffusion", "gamma": false,
+        "model_dict": {"SF": 1e-1, "E": 30.0, "nu_D": 1e13, "factor": 0.75}
+    },
+    {
+        "id": 34, "equation": "CO_F + O_F -> CO2 + 2 V_F", "rate": "recomb-LH", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 29.0, "nu_D": 1e13, "factor": 1.0}
+    },
+    {
+        "id": 35, "equation": "CO_F + V_S -> CO_S + V_F", "rate": "diffusion", "gamma": false,
+        "model_dict": {"SF": 1e-2, "E": 29.0, "nu_D": 1e13, "factor": 1.0}
+    },
+    {
+        "id": 36, "equation": "O + CO_S -> CO2 + V_S", "rate": "recomb", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 29.0}
+    },
+    {
+        "id": 37, "equation": "CO + O_S -> CO2 + V_S", "rate": "recomb", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 29.0}
+    },
+    {
+        "id": 38, "equation": "O_F + CO_S -> CO2 + V_F + V_S", "rate": "recomb", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 49.0, "nu_D": 1e13, "factor": 1.0}
+    },
+    {
+        "id": 39, "equation": "CO_F + O_S -> CO2 + V_F + V_S", "rate": "recomb", "gamma": false,
+        "model_dict": {"SF": 1e-1, "E": 49.0, "nu_D": 1e13, "factor": 1.0}
     }
 ]
