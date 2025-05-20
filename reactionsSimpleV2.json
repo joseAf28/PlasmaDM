@@ -115,7 +115,7 @@
     },
     {
         "id": 29, "equation": "CO2_F -> CO2 + V_F", "rate": "desorption", "gamma": false,
-        "model_dict": {"SF": 1.0, "E": 17.5, "nu_D": 1e13, "factor": 1.0}
+        "model_dict": {"SF": 1.0, "E": 17.5, "nu_d": 1e15}
     },
 
 
@@ -125,18 +125,18 @@
     },
     {
         "id": 31, "equation": "CO_F -> CO + V_F", "rate": "desorption", "gamma": false,
-        "model_dict": {"SF": 1.0, "E": 17.5, "nu_D": 1e13, "factor": 0.75}
+        "model_dict": {"SF": 1.0, "E": 17.5, "nu_d": 1e15}
     },
     {
         "id": 32, "equation": "CO + V_S -> CO_S", "rate": "adsorption", "gamma": false,
-        "model_dict": {"SF": 1e-3, "E": 0.0}
+        "model_dict": {"SF": 1e-2, "E": 0.0}
     },
     {
-        "id": 33, "equation": "CO + O_F -> CO2 + V_F", "rate": "diffusion", "gamma": false,
-        "model_dict": {"SF": 1e-1, "E": 30.0, "nu_D": 1e13, "factor": 0.75}
+        "id": 33, "equation": "O + CO_F -> CO2 + V_F", "rate": "recomb_ER", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 0.0}
     },
     {
-        "id": 34, "equation": "CO_F + O_F -> CO2 + 2 V_F", "rate": "recomb-LH", "gamma": true,
+        "id": 34, "equation": "CO_F + O_F -> CO2 + 2 V_F", "rate": "recomb_LH", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 29.0, "nu_D": 1e13, "factor": 1.0}
     },
     {
@@ -144,19 +144,122 @@
         "model_dict": {"SF": 1e-2, "E": 29.0, "nu_D": 1e13, "factor": 1.0}
     },
     {
-        "id": 36, "equation": "O + CO_S -> CO2 + V_S", "rate": "recomb", "gamma": true,
+        "id": 36, "equation": "O + CO_S -> CO2 + V_S", "rate": "recomb_ER", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 29.0}
     },
     {
-        "id": 37, "equation": "CO + O_S -> CO2 + V_S", "rate": "recomb", "gamma": true,
+        "id": 37, "equation": "CO + O_S -> CO2 + V_S", "rate": "recomb_ER", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 29.0}
     },
     {
-        "id": 38, "equation": "O_F + CO_S -> CO2 + V_F + V_S", "rate": "recomb", "gamma": true,
+        "id": 38, "equation": "O_F + CO_S -> CO2 + V_F + V_S", "rate": "recomb_LH", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 49.0, "nu_D": 1e13, "factor": 1.0}
     },
     {
-        "id": 39, "equation": "CO_F + O_S -> CO2 + V_F + V_S", "rate": "recomb", "gamma": false,
+        "id": 39, "equation": "CO_F + O_S -> CO2 + V_F + V_S", "rate": "recomb_LH", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 49.0, "nu_D": 1e13, "factor": 1.0}
+    },
+
+
+
+    {
+        "id": 40, "equation": "COfast + O_S -> Vdb_S + CO + O", "rate": "create_meta", "gamma": true, 
+        "model_dict":  {"SF": 0.0, "E": 0.0, "Emin": 3.3, "E_de": 30.0, "E_di": 15.0}
+    },
+    {
+        "id": 41, "equation": "CO2fast + O_S -> Vdb_S + CO2 + O", "rate": "create_meta", "gamma": true,
+        "model_dict":  {"SF": 0.0, "E": 0.0, "Emin": 2.1, "E_de": 30.0, "E_di": 15.0}
+    },
+    {
+        "id": 42, "equation": "Ofast + CO_S -> Vdb_S + CO + O", "rate": "create_meta", "gamma": true, 
+        "model_dict":  {"SF": 1.0, "E": 0.0, "Emin": 5.8, "E_de": 30.0, "E_di": 15.0}
+    },
+    {
+        "id": 43, "equation": "O2fast + CO_S -> Vdb_S + CO + O2", "rate": "create_meta", "gamma": true,
+        "model_dict":  {"SF": 1.0, "E": 0.0, "Emin": 2.9, "E_de": 30.0, "E_di": 15.0}
+    },
+    {
+        "id": 44, "equation": "COfast + CO_S -> Vdb_S + 2 CO ", "rate": "create_meta", "gamma": true,
+        "model_dict":  {"SF": 0.0, "E": 0.0, "Emin": 3.3, "E_de": 30.0, "E_di": 15.0}
+    },
+    {
+        "id": 45, "equation": "CO2fast + CO_S -> Vdb_S + CO + CO2", "rate": "create_meta", "gamma": true,
+        "model_dict":  {"SF": 0.0, "E": 0.0, "Emin": 2.1, "E_de": 30.0, "E_di": 15.0}
+    },
+    {
+        "id": 46, "equation": "COfast + V_S -> Vdb_S + CO", "rate": "create_meta", "gamma": false,
+        "model_dict":  {"SF": 0.0, "E": 0.0, "Emin": 3.3, "E_de": 30.0, "E_di": 15.0}
+    },
+    {
+        "id": 47, "equation": "CO2fast + V_S -> Vdb_S + CO2", "rate": "create_meta", "gamma": false,
+        "model_dict":  {"SF": 0.0, "E": 0.0, "Emin": 2.1, "E_de": 30.0, "E_di": 15.0}
+    },
+
+
+
+    {
+        "id": 48, "equation": "CO + Vdb_S -> COdb_S", "rate": "recomb_ER_meta", "gamma": false,
+        "model_dict": {"SF": 1e-2, "E": 0.0, "Ealpha": 3400.0}
+    },
+    {
+        "id": 49, "equation": "CO + Vdb_S -> V_S + CO", "rate": "destroy_meta", "gamma": false,
+        "model_dict": {"SF": 1.0, "E": 0.0, "Ealpha": 3400.0}
+    },
+    {
+        "id": 50, "equation": "CO2 + Vdb_S -> V_S + CO2", "rate": "destroy_meta", "gamma": false,
+        "model_dict": {"SF": 1.0, "E": 0.0, "Ealpha": 3400.0}
+    },
+    {
+        "id": 51, "equation": "CO2 + Odb_S -> V_S + CO2 + O", "rate": "destroy_meta", "gamma": true,
+        "model_dict": {"SF": 1.0, "E": 0.0, "Ealpha": 3400.0}
+    },
+
+
+    {
+        "id": 52, "equation": "CO + Odb_S -> V_S + CO2", "rate": "destroy_meta", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 0.0, "Ealpha": 3400.0}
+    },
+    {
+        "id": 53, "equation": "O + COdb_S -> V_S + CO2", "rate": "destroy_meta", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 0.0, "Ealpha": 3400.0}
+    },
+    {
+        "id": 54, "equation": "CO + COdb_S -> V_S + 2 CO", "rate": "destroy_meta", "gamma": true,
+        "model_dict": {"SF": 1.0, "E": 0.0, "Ealpha": 3400.0}
+    },
+
+
+
+    {
+        "id": 55, "equation": "CO2 + COdb_S -> V_S + CO2 + CO", "rate": "destroy_meta", "gamma": true,
+        "model_dict": {"SF": 1.0, "E": 0.0, "Ealpha": 3400.0}
+    },
+    {
+        "id": 56, "equation": "O2 + COdb_S -> V_S + O2 + CO", "rate": "destroy_meta", "gamma": true,
+        "model_dict": {"SF": 1.0, "E": 0.0, "Ealpha": 3400.0}
+    },
+
+    {
+        "id": 57, "equation": "CO + Odb_S -> Vdb_S + CO2", "rate": "recomb_ER_meta", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 0.0, "Ealpha": 3400.0}
+    },
+    {
+        "id": 58, "equation": "O + COdb_S -> Vdb_S + CO2", "rate": "recomb_ER_meta", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 0.0, "Ealpha": 3400.0}
+    },
+
+
+
+    {
+        "id": 59, "equation": "CO_F + Vdb_S -> COdb_S + V_F", "rate": "recomb_LH", "gamma": false,
+        "model_dict": {"SF": 1e-2, "E": 30.0, "nu_D": 1e13, "factor": 0.75}
+    },
+    {
+        "id": 60, "equation": "CO_F + Odb_S -> CO2 + V_F + Vdb_S", "rate": "recomb_LH", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 30.0, "nu_D": 1e13, "factor": 0.75}
+    },
+    {
+        "id": 61, "equation": "O_F + COdb_S -> CO2 + V_F + Vdb_S", "rate": "recomb_LH", "gamma": true,
+        "model_dict": {"SF": 1e-1, "E": 30.0, "nu_D": 1e13, "factor": 0.75}
     }
 ]
