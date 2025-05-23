@@ -33,7 +33,7 @@ class Optimizer():
         self.exp_data_arr: np.ndarray = self.simulator.exp_data_arr # Array of experiment dicts
         
         self.use_logging: bool = use_logging
-
+        
         # Store an initial deep copy of the reaction list from the simulator and
         # it serves as the base template for modifications.
         if 'reactions_list' not in self.simulator.output_parser:
@@ -53,7 +53,7 @@ class Optimizer():
             target_reaction_id = instruction.get("id")
             target_rate_type = instruction.get("rate")
             model_dict_updates = instruction.get("model_dict")
-
+            
             if not isinstance(model_dict_updates, dict):
                 logging.warning(f"Skipping instruction due to invalid 'model_dict': {instruction}")
                 continue
@@ -94,7 +94,8 @@ class Optimizer():
                 updated_reactions_list[idx]['model_dict'].update(model_dict_updates)
         
         return updated_reactions_list
-
+    
+    
     
     def _run_simulation_with_updated_reactions(self,
                                             exp_data_arr: np.ndarray,
@@ -126,21 +127,26 @@ class Optimizer():
                 else: # Empty dict or not a dict
                     gammas_sum_list.append(np.nan)
             gammas_sum_arr = np.array(gammas_sum_list)
-
+            
             return frac_solutions_arr, gammas_results_arr_processed, gammas_sum_arr
-        
         except Exception as e:
             logging.error(f"Error during simulation run for optimization: {e}", exc_info=True)
             return None, None, None
     
     
     
-    def objective_function(self, params: np.ndarray) -> float:
-
-        current_call_number = self.functional_calls # For logging
+    def solve_simulations_updated(self, params: np.ndarray) ->  Tuple[Optional[np.ndarray], Optional[np.ndarray], Optional[np.ndarray]]:
         
-        if self.use_logging:
-            logging.debug(f"Objective function call #{current_call_number} with params: {params}")
+        param_update_instructions = self.func_new_model_dict(params)
+        current_reactions_list = self._update_reactions_list_for_params(self._base_reactions_list, param_update_instructions)
+        
+        frac_solutions_arr, gammas_results_arr, gammas_sum_arr = self._run_simulation_with_updated_reactions(self.exp_data_arr, current_reactions_list, solver_type="fixed_point")
+        
+        return frac_solutions_arr, gammas_results_arr, gammas_sum_arr, self.gamma_exp_data
+    
+    
+    
+    def objective_function(self, params: np.ndarray) -> float:
         
         param_update_instructions = self.func_new_model_dict(params)
         current_reactions_list = self._update_reactions_list_for_params(self._base_reactions_list, param_update_instructions)
@@ -155,7 +161,7 @@ class Optimizer():
             logging.error(f"Call #{current_call_number}: Mismatch in length between experimental gamma ({len(self.gamma_exp_data)}) "
                         f"and simulated gamma sum ({len(gammas_simulated_sum)}). Returning Inf loss.")
             return np.inf
-
+        
         # Handle NaNs before passing to loss function if it's sensitive
         valid_indices = ~np.isnan(gammas_simulated_sum) & ~np.isnan(self.gamma_exp_data)
         if not np.any(valid_indices):
@@ -163,18 +169,13 @@ class Optimizer():
             return np.inf
         
         loss = self.loss_function(self.gamma_exp_data[valid_indices], gammas_simulated_sum[valid_indices])
-
+        
         if self.use_logging:
-            log_msg = f"Call #{current_call_number}: Loss = {loss:.4e}"
+            log_msg = f"Loss = {loss:.4e}"
             logging.info(log_msg)
         
-        
-        print(loss)
-        # if current_call_number % 2 == 0:
-        #     log_msg = f"Call #{current_call_number}: Loss = {loss:.4e}"
-        #     print(log_msg)
-            
         return loss
+    
     
     
     def update_reaction_list(self, reactions_list, dict_new_vec):
@@ -213,7 +214,8 @@ class Optimizer():
         return reactions_list
     
     
-    def hybrid_optimization_search(self, config: Dict[str, Any], num_workers: int = 1) -> Tuple[Optional[np.ndarray], Optional[float]]:
+    
+    def hybrid_optimization_search(self, config: Dict[str, Any], num_workers: int = 8, local_refinement: bool = False) -> Tuple[Optional[np.ndarray], Optional[float]]:
         """
         Performs a hybrid optimization: global search with Differential Evolution,
         followed by local search refinement on the best candidates.
@@ -221,7 +223,7 @@ class Optimizer():
         bounds = config.get("bounds")
         de_num_iterations = config.get("de_num_iterations", 5) # How many separate DE runs
         de_max_generations = config.get("de_max_generations", 100)
-        de_polish = config.get("de_polish", True) # DE's internal polishing
+        de_polish = config.get("de_polish", False) # DE's internal polishing
         de_pop_size = config.get("de_population_size", 15) # Typical DE parameter
 
         local_attempts_per_candidate = config.get("local_search_attempts_per_candidate", 3)
@@ -260,23 +262,30 @@ class Optimizer():
                     maxiter=de_max_generations,
                     popsize=de_pop_size,
                     tol=0.01,
-                    mutation=(0.5, 1),
                     recombination=0.7,
                     polish=de_polish,
-                    disp=False,         # Quieter output, rely on logging
+                    disp=True,         # Quieter output, rely on logging
                     workers=pool.map,   # Parallel evaluation of population
-                    updating="deferred" # Good for parallel
+                    updating="deferred" # Good for parallel,
                 )
+                
+                global_search_candidates_params.append(de_result.x)
+                global_search_candidates_loss.append(de_result.fun)
+                
                 if de_result.success:
-                    global_search_candidates_params.append(de_result.x)
-                    global_search_candidates_loss.append(de_result.fun)
-                    if self.use_logging:
-                        logging.info(f"DE Iteration {i+1} finished. Best Loss: {de_result.fun:.4e}, Params: {de_result.x}")
+                    logging.warning(f"DE Iteration {i+1} finished. Best Loss: {de_result.fun:.4e}, Params: {de_result.x}")
                 else:
                     logging.warning(f"DE Iteration {i+1} did not converge successfully (Message: {de_result.message}).")
                     
-                self.total_calls += res.nfev
-                self.total_itts += res.nit
+                self.total_calls += de_result.nfev
+                self.total_itts += de_result.nit
+                
+                print(f"DE Iteration {i+1} | {de_result.success}")
+                print(f"DE resul: {de_result.x} | {de_result.fun}")
+                print(f"DE: {de_result}")
+                
+                print("calls: ", self.total_calls)
+                print("itts: ", self.total_itts)
                 
         finally:
             pool.close()
@@ -291,66 +300,69 @@ class Optimizer():
         best_global_candidates_params = [global_search_candidates_params[i] for i in sorted_indices]
         best_global_candidates_loss = [global_search_candidates_loss[i] for i in sorted_indices]
         
-        if self.use_logging:
-            logging.info("Global search (DE) candidates (top 5 or all):")
-            for k in range(min(5, len(best_global_candidates_params))):
-                logging.info(f"  Rank {k+1}: Loss={best_global_candidates_loss[k]:.4e}, Params={best_global_candidates_params[k]}")
-                
-        # Initialize overall best with the best from DE
-        overall_best_params = np.copy(best_global_candidates_params[0])
-        overall_best_loss = best_global_candidates_loss[0]
+        if not local_refinement:
+            return best_global_candidates_params[0], best_global_candidates_loss[0]
         
-        ###* Local Search Refinement
-        num_to_refine = min(top_k_candidates_for_local, len(best_global_candidates_params))
-        if self.use_logging:
-            logging.info(f"\nStarting local search refinement for the top {num_to_refine} DE candidate(s)...")
-            
-        for k_candidate_idx in range(num_to_refine):
-            current_best_params_for_local = np.copy(best_global_candidates_params[k_candidate_idx])
-            current_best_loss_for_local = best_global_candidates_loss[k_candidate_idx]
-            
+        else:
             if self.use_logging:
-                logging.info(f"Refining DE Candidate {k_candidate_idx+1} (Loss: {current_best_loss_for_local:.4e})")
+                logging.info("Global search (DE) candidates (top 5 or all):")
+                for k in range(min(5, len(best_global_candidates_params))):
+                    logging.info(f"  Rank {k+1}: Loss={best_global_candidates_loss[k]:.4e}, Params={best_global_candidates_params[k]}")
+                    
+            # Initialize overall best with the best from DE
+            overall_best_params = np.copy(best_global_candidates_params[0])
+            overall_best_loss = best_global_candidates_loss[0]
+            
+            ###* Local Search Refinement
+            num_to_refine = min(top_k_candidates_for_local, len(best_global_candidates_params))
+            if self.use_logging:
+                logging.info(f"\nStarting local search refinement for the top {num_to_refine} DE candidate(s)...")
                 
-            for attempt in range(local_attempts_per_candidate):
-                # Perturb the starting point for local search
-                param_ranges = bounds_array[:, 1] - bounds_array[:, 0]
-                perturbation = np.random.uniform(-perturbation_factor * param_ranges,
-                                                 perturbation_factor * param_ranges)
-                x0_local = current_best_params_for_local + perturbation
-                x0_local = np.clip(x0_local, bounds_array[:, 0], bounds_array[:, 1]) # Ensure within bounds
+            for k_candidate_idx in range(num_to_refine):
+                current_best_params_for_local = np.copy(best_global_candidates_params[k_candidate_idx])
+                current_best_loss_for_local = best_global_candidates_loss[k_candidate_idx]
                 
-                try:
-                    local_result = sp.optimize.minimize(
-                        fun=self.objective_function,
-                        x0=x0_local,
-                        method="L-BFGS-B", # Good for bound-constrained problems
-                        bounds=bounds,
-                        options={'maxiter': 50, 'ftol': 1e-7, 'gtol': 1e-6} 
-                    )
-                    if self.use_logging:
-                        logging.info(f"  Local Search (L-BFGS-B) from DE candidate {k_candidate_idx+1}, attempt {attempt+1}: "
-                                    f"Loss={local_result.fun:.4e}, Success={local_result.success}, Message='{local_result.message}'")
-                        
-                    if local_result.success and local_result.fun < current_best_loss_for_local:
-                        current_best_loss_for_local = local_result.fun
-                        current_best_params_for_local = local_result.x
-                        # Update overall best if this local search found a better solution
-                        if current_best_loss_for_local < overall_best_loss:
-                            overall_best_loss = current_best_loss_for_local
-                            overall_best_params = np.copy(current_best_params_for_local)
-                            logging.info(f"    New overall best found! Loss: {overall_best_loss:.4e}, Params: {overall_best_params}")
+                if self.use_logging:
+                    logging.info(f"Refining DE Candidate {k_candidate_idx+1} (Loss: {current_best_loss_for_local:.4e})")
+                    
+                for attempt in range(local_attempts_per_candidate):
+                    # Perturb the starting point for local search
+                    param_ranges = bounds_array[:, 1] - bounds_array[:, 0]
+                    perturbation = np.random.uniform(-perturbation_factor * param_ranges, perturbation_factor * param_ranges)
+                    x0_local = current_best_params_for_local + perturbation
+                    x0_local = np.clip(x0_local, bounds_array[:, 0], bounds_array[:, 1]) # Ensure within bounds
+                    
+                    try:
+                        local_result = sp.optimize.minimize(
+                            fun=self.objective_function,
+                            x0=x0_local,
+                            method="L-BFGS-B", # Good for bound-constrained problems
+                            bounds=bounds,
+                            options={'maxiter': 50, 'ftol': 1e-7, 'gtol': 1e-6} 
+                        )
+                        if self.use_logging:
+                            logging.info(f"  Local Search (L-BFGS-B) from DE candidate {k_candidate_idx+1}, attempt {attempt+1}: "
+                                        f"Loss={local_result.fun:.4e}, Success={local_result.success}, Message='{local_result.message}'")
                             
-                except Exception as e:
-                    logging.error(f"  Local search attempt failed with exception: {e}", exc_info=True)
-            
-            if self.use_logging:
-                logging.info(f"  Finished refinement for DE Candidate {k_candidate_idx+1}. Best loss for this branch: {current_best_loss_for_local:.4e}")
+                        if local_result.success and local_result.fun < current_best_loss_for_local:
+                            current_best_loss_for_local = local_result.fun
+                            current_best_params_for_local = local_result.x
+                            # Update overall best if this local search found a better solution
+                            if current_best_loss_for_local < overall_best_loss:
+                                overall_best_loss = current_best_loss_for_local
+                                overall_best_params = np.copy(current_best_params_for_local)
+                                logging.info(f"    New overall best found! Loss: {overall_best_loss:.4e}, Params: {overall_best_params}")
+                                
+                    except Exception as e:
+                        logging.error(f"  Local search attempt failed with exception: {e}", exc_info=True)
                 
-        if self.use_logging:
-            logging.info(f"\nHybrid optimization finished.")
-            logging.info(f"Overall Best Loss: {overall_best_loss:.4e}")
-            logging.info(f"Overall Best Parameters: {overall_best_params}")
-            logging.info(f"Total objective function calls: {self.functional_calls}")
-            
-        return overall_best_params, overall_best_loss
+                if self.use_logging:
+                    logging.info(f"  Finished refinement for DE Candidate {k_candidate_idx+1}. Best loss for this branch: {current_best_loss_for_local:.4e}")
+                    
+            if self.use_logging:
+                logging.info(f"\nHybrid optimization finished.")
+                logging.info(f"Overall Best Loss: {overall_best_loss:.4e}")
+                logging.info(f"Overall Best Parameters: {overall_best_params}")
+                logging.info(f"Total objective function calls: {self.functional_calls}")
+                
+            return overall_best_params, overall_best_loss

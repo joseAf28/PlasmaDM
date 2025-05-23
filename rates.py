@@ -5,6 +5,7 @@ import scipy as sp
 def adsorption(const_dict, exp_dict, model_dict):
     F0, S0, R = const_dict["F0"], const_dict["S0"], const_dict["R"]
     Tnw = exp_dict['Tnw']
+    
     SF, E = model_dict['SF'], model_dict['E']
     gas_specie = model_dict['gas_specie']
     
@@ -18,7 +19,12 @@ def desorption(const_dict, exp_dict, model_dict):
     Tw = exp_dict['Tw']
     SF, E, nu_d = model_dict['SF'], model_dict['E'], model_dict['nu_d']
     
-    return SF * nu_d * np.exp(-E / (R * Tw))
+    if callable(nu_d):
+        nu_d_value = nu_d(Tw)
+    else:
+        nu_d_value = nu_d
+    
+    return SF * nu_d_value * np.exp(-E / (R * Tw))
 
 
 def diffusion(const_dict, exp_dict, model_dict):
@@ -43,6 +49,7 @@ def recomb_ER(const_dict, exp_dict, model_dict):
 def recomb_LH(const_dict, exp_dict, model_dict):
     R = const_dict["R"]
     Tw = exp_dict['Tw']
+    
     SF, E, nu_D, factor = model_dict['SF'], model_dict['E'], model_dict['nu_D'], model_dict['factor']
     
     return SF * factor * nu_D * np.exp(-E / (R * Tw))

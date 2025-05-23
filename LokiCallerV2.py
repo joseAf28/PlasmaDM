@@ -1,4 +1,8 @@
 from scipy.optimize import root_scalar
+import concurrent.futures
+from abc import ABC, abstractmethod
+
+import yaml
 from pathlib import Path
 import numpy as np
 import scipy as sp
@@ -15,83 +19,58 @@ class RightThreshold(Exception):
     pass
 
 
-class PhysicalSimulator():
+class SolverTimeout(Exception):
+    """Raised when the solver runs longer than max_time seconds."""
+    pass
+
+
+
+class PhysicalSimulator(ABC):
     
-    def __init__(self, eng, base_dir, input_file, x_names, print_flag=False):
+    def __init__(self, eng, base_dir, input_file, print_flag=False):
         self.eng = eng
         self.base_dir = Path(base_dir)
         self.input_path = self.base_dir / 'Input' / input_file
         
-        self.x_names = x_names
-        
-        ### cache key->line index in the input file for faster writes
-        self._key2line, self._key2name = self._index_input_file()
+        with open(self.input_path, "r") as file:
+            text = file.read()
+        yaml_data = text.replace('%', '#')
+        self.data = yaml.safe_load(yaml_data)
         
         self.chamber_radius = 1e-2
         self.electric_charge_const = 1.6021766208e-19
-        self.electron_den_name = "electronDensity"
-        
-        self.drift_name = 'Drift velocity'
         
         self.functional_calls = 0
         self.print_flag = print_flag
         
+        self.drift_name = 'Drift velocity'
         self.densities_file = 'chemFinalDensities.txt'
         self.features_file = 'swarmParameters.txt'
+    
+    
+    @abstractmethod
+    def modify_input_data(self, params):
+        pass
+    
+    
+    def modify_param_objective(self, electron_den):
+        self.data['workingConditions']['electronDensity'] = float(electron_den)
+    
+    
+    def write_input_file(self):
         
-        self.current = 0.0
-    
-    
-    
-    def _index_input_file(self):
-        
-        lines = self.input_path.read_text().splitlines()
-        
-        mapping_num ={}
-        mapping_name = {}
-        for idx, line in enumerate(lines):
-            
-            if ":" in line:
-                
-                key_num = line.split(':', 1)[0].strip()
-                mapping_num[key_num] = idx
-                
-                line_aux = line.split(':')
-                key_name = line_aux[0]
-                mapping_name[key_num] = key_name
-        
-        return mapping_num, mapping_name
-    
-    
-    
-    def modify_input_file(self, params, add_folder=None):
-        
-        if add_folder is None:
-            pass
-        else:
-            params = {**params, **add_folder}
-        
-        lines = self.input_path.read_text().splitlines()
-        for key, val in params.items():
-            
-            idx = self._key2line.get(key)
-            if idx is not None:
-                key_name = self._key2name.get(key)
-                lines[idx] = f"{key_name}: {val}"
-            else:
-                logging.warning(f"Key '{key}' not found in input file.")
-            
-        self.input_path.write_text('\n'.join(lines))
-        logging.debug(f"Input file modified with params: {params}")
-    
+        yaml_out = yaml.dump(self.data, sort_keys=False)
+        in_text_out = yaml_out.replace('#', '%')
+        with open(self.input_path, "w") as file:
+            file.write(in_text_out)
     
     
     def _run_matlab(self):
         
         buf = io.StringIO()
         try:
-            if self.print_flag:
-                print("Running MATLAB ... ")
+            # if self.print_flag:
+            print("Running MATLAB ... ")
             self.eng.loki(self.input_path.name, nargout=0, stdout=buf, stderr=buf)
         except Exception as e:
             logging.error(f"MATLAB error: {e}")
@@ -146,15 +125,15 @@ class PhysicalSimulator():
     
     
     
-    def objective_current(self, electron_density, current_exp, output_feat_file, print_flag=True, epsilon=1e-3):
+    def objective_current(self, electron_density, current_exp, output_feat_file, print_flag=True, epsilon=0.0025):
         
         self.functional_calls += 1
         
         print("electron_density:", electron_density*1e-15)
-        print("current_exp:", current_exp)
         
-        params_curr = {self.electron_den_name: electron_density}
-        self.modify_input_file(params_curr)
+        self.modify_param_objective(electron_density)
+        self.write_input_file()
+        
         self._run_matlab()
         
         results, names = self._read_output_feat(output_feat_file)
@@ -171,26 +150,59 @@ class PhysicalSimulator():
             return current
     
     
-    
-    def solver_one_point(self, params, current_exp, ne_min, ne_max, 
-                        add_folder=None, expand_factor=2.0, max_expansions=5):
+    def solver_one_point(self, params_tuple, current_exp, ne_min, ne_max):
         
         
-        folder_name = add_folder['folder']
+        folder_name = params_tuple[-1]
+        
         folder_path = self.base_dir / 'Output' / folder_name
         output_densities_file = folder_path / self.densities_file
         output_feat_file = folder_path / self.features_file        
         
-        print("folder: ", folder_name)
-        
-        params = dict(zip(self.x_names, params))
-        self.modify_input_file(params, add_folder)
+        self.modify_input_data(params_tuple)
+        self.write_input_file()
         
         def f(x):
             return self.objective_current(x, current_exp, output_feat_file) - current_exp
         
         a = ne_min
         b = ne_max
+        try:
+            sol = root_scalar(
+                f,
+                method='ridder',
+                bracket=[a, b],
+                xtol=1e-3,
+                maxiter=25
+            )
+        except RightThreshold as e:
+            return self._read_output_densities(output_densities_file)
+        
+        return self._read_output_densities(output_densities_file)
+
+
+
+    def solver_one_pointV2(self, params, current_exp, ne_min, ne_max, 
+                        expand_factor=2.0, max_expansions=5):
+        
+        
+        
+        folder_name = params_tuple[-1]
+        
+        folder_path = self.base_dir / 'Output' / folder_name
+        output_densities_file = folder_path / self.densities_file
+        output_feat_file = folder_path / self.features_file        
+        
+        self.modify_input_data(params_tuple)
+        self.write_input_file()
+        
+        
+        def f(x):
+            return self.objective_current(x, current_exp, output_feat_file) - current_exp
+        
+        a = ne_min
+        b = ne_max
+        
         for attempt in range(max_expansions):
             try:
                 sol = root_scalar(
