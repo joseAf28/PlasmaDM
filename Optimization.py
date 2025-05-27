@@ -86,7 +86,7 @@ class Optimizer():
                 else:
                     logging.error(f"Ambiguous update: 'id' and 'rate' are None, and 'model_dict' has multiple keys. Instruction: {instruction}")
                     raise ValueError(f"Ambiguous update instruction: {instruction}")
-                
+            
             for idx in indices_to_update:
                 if 'model_dict' not in updated_reactions_list[idx] or updated_reactions_list[idx]['model_dict'] is None:
                     updated_reactions_list[idx]['model_dict'] = {} # Ensure model_dict exists
@@ -210,12 +210,12 @@ class Optimizer():
                             
                     for idx in idx2update:
                         reactions_list[idx]["model_dict"].update(mod_update)
-                        
+        
         return reactions_list
     
     
     
-    def hybrid_optimization_search(self, config: Dict[str, Any], num_workers: int = 8, local_refinement: bool = False) -> Tuple[Optional[np.ndarray], Optional[float]]:
+    def hybrid_optimization_search(self, config: Dict[str, Any], num_workers: int = 9, local_refinement: bool = False) -> Tuple[Optional[np.ndarray], Optional[float]]:
         """
         Performs a hybrid optimization: global search with Differential Evolution,
         followed by local search refinement on the best candidates.
@@ -366,3 +366,93 @@ class Optimizer():
                 logging.info(f"Total objective function calls: {self.functional_calls}")
                 
             return overall_best_params, overall_best_loss
+        
+        
+        
+    def hybrid_optimization_searchV2(self, config: Dict[str, Any], num_workers: int = 9, local_refinement: bool = False) -> Tuple[Optional[np.ndarray], Optional[float]]:
+        """
+        Performs a hybrid optimization: global search with Differential Evolution,
+        followed by local search refinement on the best candidates.
+        """
+        bounds = config.get("bounds")
+        de_num_iterations = config.get("de_num_iterations", 1) # How many separate DE runs
+        de_pop_size = config.get("de_population_size", 15) # Typical DE parameter
+        
+        top_k = 30
+        
+        if bounds is None:
+            logging.error("Bounds must be provided in the configuration.")
+            return None, None
+
+        bounds_array = np.array(bounds)
+        if bounds_array.ndim != 2 or bounds_array.shape[1] != 2:
+            logging.error("Bounds must be a list of (min, max) tuples.")
+            return None, None
+
+        global_search_candidates_params: List[np.ndarray] = []
+        global_search_candidates_loss: List[float] = []
+        
+        self.total_calls = 0
+        self.total_itts = 0
+
+        ####* Global Search: Differential Evolution 
+        if self.use_logging:
+            logging.info(f"Starting Differential Evolution with {de_num_iterations} iteration(s), "
+                        ", using {num_workers} worker(s).")
+        
+        pool = ProcessPool(nodes=num_workers)
+        
+        result_global = sp.optimize.differential_evolution(
+                    func=self.objective_function,
+                    bounds=bounds,
+                    strategy='randtobest1bin',
+                    maxiter=105,
+                    popsize=de_pop_size,
+                    tol=0.01,
+                    recombination=0.7,
+                    polish=False,
+                    disp=True,         
+                    workers=pool.map,   
+                    updating="deferred"
+        )
+        population = result_global.population
+        population_energies = result_global.population_energies
+        
+        
+        ###* Local refinement
+        top_k_mod = int(0.3*population.shape[0]) if int(0.1*population.shape[0]) < top_k else top_k
+        print("top_k_mod: ", top_k_mod)
+        best_idx = np.argsort(population_energies)[:top_k_mod]
+        best_population = population[best_idx]
+        best_energies = population_energies[best_idx]
+        refined = []
+        
+        
+        local_steps = 25
+        def _refine(x0):
+            res = sp.optimize.minimize(self.objective_function, x0,
+                    method='Nelder-Mead',
+                    bounds=bounds,
+                    options={
+                        'maxiter': local_steps,
+                        'maxfev': local_steps,
+                        'xatol': 1e-8,
+                        'fatol': 1e-8
+                    }
+            )
+            print("res: ", res.fun, res.x, x0)
+            return res.x
+        
+        
+        refined = pool.map(_refine, best_population)
+        
+        result_reseed = sp.optimize.differential_evolution(self.objective_function, bounds,
+                    strategy='best1bin', init=refined, polish=False, 
+                    disp=True, maxiter=60,
+                    workers=pool.map,   # Parallel evaluation of population
+                    updating="deferred" # Good for parallel,
+            )
+        
+        pool.close()
+        
+        return result_global, result_reseed

@@ -1,0 +1,187 @@
+******************************************************************************
+*     __    _      __    ____           __ __ ____           __  _           *
+*    / /   (_)____/ /_  / __ \____     / //_//  _/___  ___  / /_(_)_________ *
+*   / /   / / ___/ __ \/ / / / __ \   / ,<   / // __ \/ _ \/ __/ / ___/ ___/ *
+*  / /___/ (__  ) /_/ / /_/ / / / /  / /| |_/ // / / /  __/ /_/ / /__(__  )  *
+* /_____/_/____/_.___/\____/_/ /_/  /_/ |_/___/_/ /_/\___/\__/_/\___/____/   *
+*                                                                            *
+*                   _        _  _____       ____  _   __                     *
+*                  | |   ___| |/ /_ _| __ _|__ / / | /  \                    *
+*                  | |__/ _ \ ' < | |  \ V /|_ \_| || () |                   *
+*                  |____\___/_|\_\___|  \_/|___(_)_(_)__/                    *
+*                                                                            *
+******************************************************************************
+Parsing setup file ...
+  Finished (0.369585 seconds).
+Performing selfdiagnostic of the setup file ...
+  Finished (0.001130 seconds).
+Initializing simulation:
+	- Setting up electron kinetics ...
+	    Finished (0.617785 seconds).
+	- Setting up heavy-species kinetics ...
+	    Finished (0.609329 seconds).
+	- Setting up other components ...
+	    Finished (0.000974 seconds).
+	- Configuring CLI ...
+	    Finished (0.003336 seconds).
+	- Setting up Output ...
+	    Finished (0.014280 seconds).
+  Finished (1.404608 seconds).
+Starting calculations: ...
+	- Solving Boltzmann ...
+	- Updated electron temperature (2.67663 eV).
+	    Finished (1.628784 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.605897 seconds).
+	- New pressure cycle iteration (1): relative error = 2.122154e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.295110 seconds).
+	- New pressure cycle iteration (2): relative error = 4.056823e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.286266 seconds).
+	- New pressure cycle iteration (3): relative error = 5.658847e-04
+	- New neutrality cycle iteration (1): relative error = -3.469197e+01
+	- Updated reduced field (50 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.8402 eV).
+	    Finished (2.831359 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.222038 seconds).
+	- New pressure cycle iteration (3): relative error = 2.510203e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.240559 seconds).
+	- New pressure cycle iteration (4): relative error = 6.160302e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.218192 seconds).
+	- New pressure cycle iteration (5): relative error = 3.332919e-03
+	- New neutrality cycle iteration (2): relative error = 8.318576e-01
+	- Updated reduced field (75 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (2.31944 eV).
+	    Finished (2.531114 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.228496 seconds).
+	- New pressure cycle iteration (5): relative error = -1.900455e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.229528 seconds).
+	- New pressure cycle iteration (6): relative error = 4.024086e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.198878 seconds).
+	- New pressure cycle iteration (7): relative error = 1.410514e-04
+	- New neutrality cycle iteration (3): relative error = -4.699648e+00
+	- Updated reduced field (62.5 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (2.10477 eV).
+	    Finished (0.629106 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.193941 seconds).
+	- New pressure cycle iteration (7): relative error = 7.680828e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.232279 seconds).
+	- New pressure cycle iteration (8): relative error = 4.931010e-03
+	- New neutrality cycle iteration (4): relative error = -4.242839e-01
+	- Updated reduced field (58.7828 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (2.03136 eV).
+	    Finished (1.239435 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.192469 seconds).
+	- New pressure cycle iteration (8): relative error = 3.160967e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.189579 seconds).
+	- New pressure cycle iteration (9): relative error = 6.309613e-04
+	- New neutrality cycle iteration (5): relative error = 1.501391e-01
+	- Updated reduced field (59.9497 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (2.05604 eV).
+	    Finished (1.383381 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.189926 seconds).
+	- New pressure cycle iteration (9): relative error = -8.239435e-03
+	- New neutrality cycle iteration (6): relative error = -1.843416e-02
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.68501 eV).
+	    Finished (1.913295 seconds).
+	- New global cycle iteration (1): relative error = 1.667767e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.186931 seconds).
+	- New pressure cycle iteration (9): relative error = 5.595713e-03
+	- New neutrality cycle iteration (6): relative error = -2.240235e-01
+	- Updated reduced field (46.5195 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.23784 eV).
+	    Finished (1.261626 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.183844 seconds).
+	- New pressure cycle iteration (9): relative error = 1.116296e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.187012 seconds).
+	- New pressure cycle iteration (10): relative error = 1.204405e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.185106 seconds).
+	- New pressure cycle iteration (11): relative error = 9.430529e-05
+	- New neutrality cycle iteration (7): relative error = 9.288488e-01
+	- Updated reduced field (57.34 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.60689 eV).
+	    Finished (1.053149 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.186469 seconds).
+	- New pressure cycle iteration (11): relative error = -9.635985e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.183388 seconds).
+	- New pressure cycle iteration (12): relative error = 1.026577e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.185329 seconds).
+	- New pressure cycle iteration (13): relative error = 9.219693e-06
+	- New neutrality cycle iteration (8): relative error = 1.853616e-01
+	- Updated reduced field (58.5216 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.64268 eV).
+	    Finished (0.541573 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.200844 seconds).
+	- New pressure cycle iteration (13): relative error = -9.776984e-03
+	- New neutrality cycle iteration (9): relative error = 2.348002e-03
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.63698 eV).
+	    Finished (0.562208 seconds).
+	- New global cycle iteration (2): relative error = 8.274570e-03
+	- Integrating particle rate-balance equations ...
+	    Finished (0.185733 seconds).
+	- New pressure cycle iteration (13): relative error = -4.555363e-03
+	- New neutrality cycle iteration (9): relative error = 1.447291e-01
+	- Updated reduced field (66.9914 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.87013 eV).
+	    Finished (1.173817 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.205251 seconds).
+	- New pressure cycle iteration (13): relative error = -7.237143e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.216316 seconds).
+	- New pressure cycle iteration (14): relative error = 6.305942e-03
+	- New neutrality cycle iteration (10): relative error = -1.761985e+00
+	- Updated reduced field (62.7565 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.75808 eV).
+	    Finished (1.152321 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.208021 seconds).
+	- New pressure cycle iteration (14): relative error = 3.726869e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.202104 seconds).
+	- New pressure cycle iteration (15): relative error = 9.661343e-04
+	- New neutrality cycle iteration (11): relative error = -6.001899e-01
+	- Updated reduced field (59.3444 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.6612 eV).
+	    Finished (0.552247 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.206878 seconds).
+	- New pressure cycle iteration (15): relative error = 2.737720e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.184651 seconds).
+	- New pressure cycle iteration (16): relative error = 4.801557e-04
+	- New neutrality cycle iteration (12): relative error = 3.086417e-02
+  Finished (27.483880 seconds).

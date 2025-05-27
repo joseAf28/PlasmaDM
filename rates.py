@@ -32,7 +32,12 @@ def diffusion(const_dict, exp_dict, model_dict):
     Tw = exp_dict['Tw']
     SF, E, nu_D, factor = model_dict['SF'], model_dict['E'], model_dict['nu_D'], model_dict['factor']
     
-    return SF * factor * nu_D * np.exp(-E / (R * Tw))
+    if callable(nu_D):
+        nu_D_value = nu_D(Tw)
+    else:
+        nu_D_value = nu_D
+    
+    return SF * factor * nu_D_value * np.exp(-E / (R * Tw))
 
 
 def recomb_ER(const_dict, exp_dict, model_dict):
@@ -52,7 +57,12 @@ def recomb_LH(const_dict, exp_dict, model_dict):
     
     SF, E, nu_D, factor = model_dict['SF'], model_dict['E'], model_dict['nu_D'], model_dict['factor']
     
-    return SF * factor * nu_D * np.exp(-E / (R * Tw))
+    if callable(nu_D):
+        nu_D_value = nu_D(Tw)
+    else:
+        nu_D_value = nu_D
+    
+    return SF * factor * nu_D_value * np.exp(-E / (R * Tw))
 
 
 ####* include metastable reactions

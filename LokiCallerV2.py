@@ -19,18 +19,14 @@ class RightThreshold(Exception):
     pass
 
 
-class SolverTimeout(Exception):
-    """Raised when the solver runs longer than max_time seconds."""
-    pass
-
-
-
 class PhysicalSimulator(ABC):
     
-    def __init__(self, eng, base_dir, input_file, print_flag=False):
+    def __init__(self, eng, base_dir, input_file, chem_file, print_flag=False):
         self.eng = eng
+        
         self.base_dir = Path(base_dir)
         self.input_path = self.base_dir / 'Input' / input_file
+        self.chem_path = self.base_dir / 'Input' / chem_file        
         
         with open(self.input_path, "r") as file:
             text = file.read()
@@ -53,6 +49,11 @@ class PhysicalSimulator(ABC):
         pass
     
     
+    @abstractmethod
+    def modify_params_chem(self, str_vec, content_vec, params_mod):
+        pass
+    
+    
     def modify_param_objective(self, electron_den):
         self.data['workingConditions']['electronDensity'] = float(electron_den)
     
@@ -65,12 +66,64 @@ class PhysicalSimulator(ABC):
             file.write(in_text_out)
     
     
+    def _load_chem_file(self, file_path):
+        
+        str_vec = []
+        content_vec = []
+        with open(file_path) as f:
+            
+            for raw in f:
+                line = raw.rstrip()
+                # Skip section header
+                m = re.match(r'%[- ]*([^-]+?) *[-]*$', line)
+                if m:
+                    continue
+                # Skip blank or pure‐comment lines
+                if not line or line.lstrip().startswith('%'):
+                    continue
+                # Split on the first 3 '|'s
+                parts = [p.strip() for p in line.split('|', 3)]
+                if len(parts) != 4:
+                    continue
+
+                reac_prod, rate_type, rate_expr, comment = parts
+                rate_expr = rate_expr.split(',')
+                if not '%' in comment:
+                    comment = '%' + comment
+                    
+                str_vec.append(reac_prod)
+                content_vec.append({
+                    'rate_type':  rate_type,
+                    'rate_expr':  rate_expr,
+                    'reference':  comment
+                })
+                
+        
+        return str_vec, content_vec
+    
+    
+    
+    def write_chem_file(self, str_vec, content_vec):
+        
+        ###* write the output
+        output_txt = []
+        for i in range(len(content_vec)):
+            content_vec[i]['rate_expr'] = ','.join(content_vec[i]['rate_expr'])
+            line2 = '\t| '.join(list(content_vec[i].values()))
+            line = str_vec[i] + "\t| " + line2 + "\n"
+            output_txt.append(line)
+        
+        with open(self.chem_path, 'w') as fout:
+            fout.writelines(output_txt)
+    
+    
+    
     def _run_matlab(self):
         
         buf = io.StringIO()
         try:
             # if self.print_flag:
-            print("Running MATLAB ... ")
+            # print("Running MATLAB ... ")
             self.eng.loki(self.input_path.name, nargout=0, stdout=buf, stderr=buf)
         except Exception as e:
             logging.error(f"MATLAB error: {e}")
@@ -129,7 +182,7 @@ class PhysicalSimulator(ABC):
         
         self.functional_calls += 1
         
-        print("electron_density:", electron_density*1e-15)
+        # print("electron_density:", electron_density*1e-15)
         
         self.modify_param_objective(electron_density)
         self.write_input_file()
@@ -150,8 +203,7 @@ class PhysicalSimulator(ABC):
             return current
     
     
-    def solver_one_point(self, params_tuple, current_exp, ne_min, ne_max):
-        
+    def solver_one_point(self, params_tuple, params_chem, current_exp, ne_min, ne_max):
         
         folder_name = params_tuple[-1]
         
@@ -161,6 +213,11 @@ class PhysicalSimulator(ABC):
         
         self.modify_input_data(params_tuple)
         self.write_input_file()
+        
+        chem_str_vec, chem_content_vec = self._load_chem_file(self.chem_path)
+        chem_content_vec = self.modify_params_chem(chem_str_vec, chem_content_vec, params_chem)
+        self.write_chem_file(chem_str_vec, chem_content_vec)
+        
         
         def f(x):
             return self.objective_current(x, current_exp, output_feat_file) - current_exp
@@ -182,7 +239,7 @@ class PhysicalSimulator(ABC):
 
 
 
-    def solver_one_pointV2(self, params, current_exp, ne_min, ne_max, 
+    def solver_one_pointV2(self, params_tuple, params_chem, current_exp, ne_min, ne_max, 
                         expand_factor=2.0, max_expansions=5):
         
         
@@ -196,6 +253,9 @@ class PhysicalSimulator(ABC):
         self.modify_input_data(params_tuple)
         self.write_input_file()
         
+        chem_str_vec, chem_content_vec = self._load_chem_file(self.chem_path)
+        chem_content_vec = self.modify_params_chem(chem_str_vec, chem_content_vec, params_chem)
+        self.write_chem_file(chem_str_vec, chem_content_vec)
         
         def f(x):
             return self.objective_current(x, current_exp, output_feat_file) - current_exp

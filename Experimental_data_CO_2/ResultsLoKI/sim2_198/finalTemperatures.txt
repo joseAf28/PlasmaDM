@@ -1,0 +1,4 @@
+      Gas Temperature = 2.79029345544420e+02 (K)
+Near wall temperature = 2.78543327313715e+02 (K)
+     Wall temperature = 2.78150000000000e+02 (K)
+ External temperature = 2.90000000000000e+02 (K)
