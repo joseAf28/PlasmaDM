@@ -14,8 +14,6 @@ The theoretical foundations and detailed methodologies are based on works by:
 - V. Guerra, "Analytical Model of Heterogeneous Atomic Recombination on Silica," *IEEE Transactions on Plasma Science*, vol. 35, no. 5, pp. 1397–1403, Oct. 2007.
 - José Afonso *et al* 2024 *J. Phys. D: Appl. Phys.* **57** 04LT01
 
-
-
 ## Theoretical formulation
 
 #### Plasma Surface Kinetics (`SurfaceKineticsSimulator`  Class)
@@ -23,19 +21,23 @@ The theoretical foundations and detailed methodologies are based on works by:
 The physical system's technical details are presented in previous referenced papers.
 
 The general formulation corresponds to:
+
 $$
 \frac{dy}{dt} = f(y, t;\theta), ~~y(t_0) = y_0
 $$
+
 where
 
-- $y$: vector of species concentrations 
+- $y$: vector of species concentrations
 - $\theta$: parameter set governing kinetics
-- $f(\cdot)$: non-linear function modeling interactions 
+- $f(\cdot)$: non-linear function modeling interactions
 
 At steady state, the dynamics satisfy:
+
 $$
 A(\theta, \vec{x}) \vec{S}^* + \vec{S}^* B(\theta, \vec{x}) \vec{S}^* = \vec{0}
 $$
+
 with reactions categorized as:
 
 - **Linear** reactions (matrix $A$):
@@ -52,17 +54,15 @@ S_i + S_j \rightarrow S_{i'} + S_{j'} + D(g)
 $$
 
 **Observable ($\gamma$)** is computed as:
+
 $$
 \gamma \equiv \hat{O} = \hat{T}(\theta, \vec{x}) \vec{S}^*
 $$
-
 
 **Numerical methods:**
 
 - Initial solution approximation using implicit Radau integration method.
 - Refinement via fixed-point iteration or Runge-Kutta methods.
-
-
 
 #### Parameter Optimization (`Optimize` Class)
 
@@ -83,8 +83,6 @@ $$
 
 This hybrid method effectively balances exploration and exploitation, improving the likelihood of approaching a global optimum.
 
-
-
 #### Uncertainty Propagation (`ErrorPropagation` class)
 
 This module evaluates the uncertainty of model predictions resulting from experimental uncertainties in input parameters.
@@ -100,6 +98,7 @@ with knowns pdfs $P(X_1), P(X_2), \dots, P(X_n)$. If we assume that the inputs a
 $$
 P(X_1, X_2, \dots, X_n) = \prod_{i=1}^n P(X_i)
 $$
+
 The deterministic relationship between inputs and observable ($\gamma$) is defined as:
 
 $$
@@ -120,8 +119,6 @@ $$
 
 This integral is numerically estimated using the **Monte Carlo stratified sampling method**.
 
-
-
 ### Project Structure
 
 This project comprises:
@@ -129,8 +126,6 @@ This project comprises:
 - **Simulation Module**: `DMsimulator.py` containing `SurfaceKineticsSimulator` class.
 - **Optimization Module**: `DMoptimize.py` containing `Optimize` class.
 - **Error Analysis Module**: `DMerror.py` containing `ErrorPropagation` class.
-
-
 
 ### Additional Scripts and Examples:
 

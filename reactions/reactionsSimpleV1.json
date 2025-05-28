@@ -135,6 +135,12 @@
         "id": 33, "equation": "O + CO_F -> CO2 + V_F", "rate": "recomb_ER", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 0.0}
     },
+    
+
+
+
+
+    
     {
         "id": 34, "equation": "CO_F + O_F -> CO2 + 2 V_F", "rate": "recomb_LH", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 29.0, "nu_D": 1e13, "factor": 1.0}
