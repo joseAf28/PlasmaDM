@@ -253,7 +253,7 @@ class SimulatorParser():
                 
         # Ensure eff_species_vars are in the same order as eff_species_list for lambdify
         eff_species_vars_sympy = [species_map[name] for name in eff_species_list]
-
+        
         # Lambdify the system of equations
         if not eff_species_vars_sympy and not equations_sym_new:
             # This case means no effective species, perhaps everything was conserved or no reactions.
@@ -274,6 +274,7 @@ class SimulatorParser():
         output_dict['species_model'] = eff_species_list # These are the species to be solved for
         output_dict['rates_model'] = rates_list         # These are the rate constants names 'r_id'
         output_dict['reactions_list'] = reactions_list  # Full reaction details
+        output_dict['model_sym'] = equations_sym_new
         
         logging.info("Physical model creation complete.")
         return output_dict

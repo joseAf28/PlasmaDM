@@ -178,7 +178,7 @@ class PhysicalSimulator(ABC):
     
     
     
-    def objective_current(self, electron_density, current_exp, output_feat_file, print_flag=True, epsilon=0.0025):
+    def objective_current(self, electron_density, current_exp, output_feat_file, print_flag=True, epsilon=0.0015):
         
         self.functional_calls += 1
         
