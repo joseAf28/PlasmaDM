@@ -21,7 +21,7 @@ class ErrorPropagator():
                 transformations_exp: Optional[Dict[str, Callable]] = None,
                 use_logging: bool = True,
                 seed: int = 42):
-
+        
         np.random.seed(seed)
         self.simulator = simulator_object
         
@@ -112,13 +112,6 @@ class ErrorPropagator():
         a, b = (min_value - mean) / sigma, (max_value - mean) / sigma
         distribution = sp.stats.truncnorm(a, b, loc=mean, scale=sigma)
         samples = distribution.rvs(size=size)
-
-        
-        # distribution = sp.stats.norm(loc=mean, scale=sigma)
-        # samples = distribution.rvs(size=size)
-        
-        # samples[samples < min_value] = min_value
-        # samples[samples > max_value] = max_value
         
         if size is None:
             return samples[0]
@@ -136,7 +129,7 @@ class ErrorPropagator():
             param_update_instructions = self.func_uncertainty_model_dict(model_params_sample)
             current_reactions_list = self._update_reactions_list_for_model_params(base_reactions_list_template, param_update_instructions)
             
-            _, gammas_results_arr = self.simulator.solve_all_conditions(exp_data_for_sim, current_reactions_list, solver_type="fixed_point")
+            _, _, gammas_results_arr = self.simulator.solve_all_conditions(exp_data_for_sim, current_reactions_list, solver_type="fixed_point")
             
             if gammas_results_arr is None: return None
             
@@ -179,7 +172,7 @@ class ErrorPropagator():
                             logging.error(f"Error applying transformation '{trans_key}' for exp {i_exp}: {e}")
                             current_exp_data_arr[i_exp][trans_key] = np.nan
             
-            _, gammas_results_arr = self.simulator.solve_all_conditions(current_exp_data_arr, reactions_list_for_sim, solver_type="fixed_point")
+            _, _, gammas_results_arr = self.simulator.solve_all_conditions(current_exp_data_arr, reactions_list_for_sim, solver_type="fixed_point")
             
             if gammas_results_arr is None: return None
             
@@ -211,10 +204,10 @@ class ErrorPropagator():
         if not model_param_uncertainty_specs:
             logging.warning("`model_param_uncertainty_specs` is empty. No model parameters to vary.")
             return np.array([]), np.array([])
-
+        
         num_model_params_to_vary = len(model_param_uncertainty_specs)
         sampled_model_params_array = np.zeros((num_samples_N, num_model_params_to_vary), dtype=float)
-
+        
         for i_param, spec in enumerate(model_param_uncertainty_specs):
             mean, sigma, min_v, max_v = spec
             sampled_model_params_array[:, i_param] = self._generate_truncated_gaussian_sample(
@@ -228,7 +221,7 @@ class ErrorPropagator():
         # and the base reactions list (template for modifications by each worker)
         exp_data_for_sim_template = self._base_exp_data_arr_template
         base_reactions_template = self._update_reactions_list_for_model_params(self._base_reactions_list, self.func_new_model_dict(self.model_param_list))
-
+        
         pool_args = [(sample, base_reactions_template, exp_data_for_sim_template) for sample in sampled_model_params_array]
         results_list = []
         try:
@@ -242,6 +235,7 @@ class ErrorPropagator():
         return sampled_model_params_array, resulting_gamma_sums_array
 
 
+
     def propagate_experimental_condition_uncertainty(self,
                                     exp_condition_uncertainty_specs: List[Tuple[str, float, float, float]], # (name, sigma, min_val, max_val)
                                     num_samples_N: int = 3,
@@ -251,12 +245,12 @@ class ErrorPropagator():
         if not exp_condition_uncertainty_specs:
             logging.warning("`exp_condition_uncertainty_specs` is empty. No experimental conditions to vary.")
             return np.array([]), np.array([])
-
+        
         base_exp_data_template = self._base_exp_data_arr_template
         
         num_experiments = len(base_exp_data_template)
         num_exp_params_to_vary = len(exp_condition_uncertainty_specs)
-
+        
         sampled_exp_params_array = np.zeros((num_samples_N, num_experiments, num_exp_params_to_vary), dtype=float)
         exp_param_names_to_vary = [spec[0] for spec in exp_condition_uncertainty_specs]
         
@@ -285,14 +279,9 @@ class ErrorPropagator():
         
         results_list = []
         try:
-            # with ProcessPool(nodes=num_workers) as pool:
-            #     results_list = pool.map(lambda p_args: self._run_simulation_for_one_sample_exp(*p_args), pool_args)
-            
-            
             with ProcessPool(nodes=num_workers) as pool:
                 results_iter = pool.imap(lambda p_args: self._run_simulation_for_one_sample_exp(*p_args), pool_args)
                 results_list = list(tqdm(results_iter, total=len(pool_args)))
-                        
             
         except Exception as e:
             logging.error(f"Error during parallel processing for experimental uncertainty: {e}", exc_info=True)

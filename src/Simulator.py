@@ -68,8 +68,10 @@ class Simulator():
         logging.info("Simulator initialization complete.")
     
     
+    
     def compute_rates(self, exp_data_arr: np.ndarray, reaction_list: List[Dict[str, Any]]) -> np.ndarray:
         return self.sim_rates_handler.compute_rates_simulation(exp_data_arr, reaction_list)
+    
     
     
     def _system_ode(self, t: float, X: np.ndarray, rates_vec: np.ndarray) -> np.ndarray:
@@ -81,6 +83,7 @@ class Simulator():
             return np.full_like(X, np.nan)
     
     
+    
     def _solution_check(self, sol_point: np.ndarray, rates_vec: np.ndarray, tolerance: float = 1e-4) -> bool:
         if not self.model_species: # No species, no ODEs to check
             return True
@@ -90,6 +93,7 @@ class Simulator():
         if not is_steady:
             logging.debug(f"Solution check failed: sum(abs(dX/dt)) = {absolute_error:.2e} > {tolerance:.0e}")
         return is_steady
+    
     
     
     def solve_ode_for_condition(self, rates_vec: np.ndarray, method: str = "stiff", 
@@ -146,6 +150,7 @@ class Simulator():
             raise ValueError("Invalid ODE method - choose between 'simple' and 'stiff'")
         
         return X_final, success_flag
+    
     
     
     def solve_fixed_point_for_condition(self,
@@ -215,6 +220,7 @@ class Simulator():
         return steady_state_solution, success_flag
     
     
+    
     def _prepare_gamma_reactions(self, S_specie_site_label: str = 'S', O2_gas_label: str = 'O2') -> List[Dict[str, Any]]:
         gamma_reactions_info: List[Dict[str, Any]] = []
         
@@ -243,6 +249,7 @@ class Simulator():
                 'is_S_site_related': is_S_site_involved
             })
         return gamma_reactions_info
+    
     
     
     def compute_gammas_for_condition(self,
@@ -303,8 +310,9 @@ class Simulator():
             current_gammas[f"r_{rxn_info['reaction_id']}"] = gamma_value
             
         return current_gammas
-
-
+    
+    
+    
     def solve_all_conditions(self,
                             exp_data_arr: np.ndarray,
                             reactions_list: List[Dict[str, Any]],
@@ -367,4 +375,4 @@ class Simulator():
                 gammas_results_list_of_dicts[i] = {f"r_{rxn['reaction_id']}": np.nan for rxn in gamma_reactions_details}
         
         logging.info("All experimental conditions processed.")
-        return frac_steady_sol_arr, np.array(gammas_results_list_of_dicts, dtype=object)
+        return frac_steady_sol_arr, rate_constants_arr, np.array(gammas_results_list_of_dicts, dtype=object)

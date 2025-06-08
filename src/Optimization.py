@@ -105,7 +105,7 @@ class Optimizer():
         
         try:
             
-            frac_solutions_arr, gammas_results_arr = self.simulator.solve_all_conditions(self.exp_data_arr, current_reactions_list, solver_type=solver_type)
+            frac_solutions_arr, rate_constants_arr, gammas_results_arr = self.simulator.solve_all_conditions(self.exp_data_arr, current_reactions_list, solver_type=solver_type)
             
             if gammas_results_arr is None or any(g is None for g in gammas_results_arr):
                 logging.warning("Solver returned None or partial None for gamma_results_arr.")
@@ -128,11 +128,10 @@ class Optimizer():
                     gammas_sum_list.append(np.nan)
             gammas_sum_arr = np.array(gammas_sum_list)
             
-            return frac_solutions_arr, gammas_results_arr_processed, gammas_sum_arr
+            return frac_solutions_arr, rate_constants_arr, gammas_results_arr_processed, gammas_sum_arr
         except Exception as e:
             logging.error(f"Error during simulation run for optimization: {e}", exc_info=True)
-            return None, None, None
-    
+            return None, None, None, None
     
     
     def solve_simulations_updated(self, params: np.ndarray) ->  Tuple[Optional[np.ndarray], Optional[np.ndarray], Optional[np.ndarray]]:
@@ -140,7 +139,7 @@ class Optimizer():
         param_update_instructions = self.func_new_model_dict(params)
         current_reactions_list = self._update_reactions_list_for_params(self._base_reactions_list, param_update_instructions)
         
-        frac_solutions_arr, gammas_results_arr, gammas_sum_arr = self._run_simulation_with_updated_reactions(self.exp_data_arr, current_reactions_list, solver_type="fixed_point")
+        frac_solutions_arr, _, gammas_results_arr, gammas_sum_arr = self._run_simulation_with_updated_reactions(self.exp_data_arr, current_reactions_list, solver_type="fixed_point")
         
         return frac_solutions_arr, gammas_results_arr, gammas_sum_arr, self.gamma_exp_data
     
@@ -151,7 +150,7 @@ class Optimizer():
         param_update_instructions = self.func_new_model_dict(params)
         current_reactions_list = self._update_reactions_list_for_params(self._base_reactions_list, param_update_instructions)
         
-        _, _, gammas_simulated_sum = self._run_simulation_with_updated_reactions(self.exp_data_arr, current_reactions_list, solver_type="fixed_point")
+        _, _, _, gammas_simulated_sum = self._run_simulation_with_updated_reactions(self.exp_data_arr, current_reactions_list, solver_type="fixed_point")
         
         if gammas_simulated_sum is None or np.all(np.isnan(gammas_simulated_sum)):
             logging.warning(f"Call #{current_call_number}: Simulation failed or returned all NaN gammas. Loss set to infinity.")
@@ -178,41 +177,40 @@ class Optimizer():
     
     
     
-    # def update_reaction_list(self, reactions_list, dict_new_vec):
-    #     ###* update the reaction list
-    #     id2index_model = {reaction['id']: idx for idx, reaction in enumerate(reactions_list)}
+    def objective_function_diff(self, params: np.ndarray) -> float:
         
-    #     for dict_new in dict_new_vec:
-    #         mod_update = dict_new["model_dict"]
-            
-    #         if dict_new["id"] is not None:
-    #             idx = id2index_model[dict_new["id"]]
-    #             reactions_list[idx]["model_dict"].update(mod_update)
-                
-    #         else:
-                
-    #             if dict_new["rate"] is not None:
-    #                 idx2update = [idx for idx, reaction in enumerate(reactions_list) if reaction["rate"] == dict_new["rate"]]
-    #                 for idx in idx2update:
-    #                     reactions_list[idx]["model_dict"].update(mod_update)
-    #             else:
-                    
-    #                 if len(mod_update) == 1:
-    #                     param_update = next(iter(mod_update))
-    #                 else:
-    #                     raise ValueError(f"Dictionaire 'model_dict' has multiple keys: {dict_new}")
-                    
-    #                 idx2update = []
-    #                 for idx, reaction in enumerate(reactions_list):
-    #                     reaction_model_dict = reactions_list[idx]['model_dict']
-    #                     if param_update in reaction_model_dict.keys():
-    #                         idx2update.append(idx)
-                            
-    #                 for idx in idx2update:
-    #                     reactions_list[idx]["model_dict"].update(mod_update)
+        param_update_instructions = self.func_new_model_dict(params)
+        current_reactions_list = self._update_reactions_list_for_params(self._base_reactions_list, param_update_instructions)
         
-    #     return reactions_list
+        frac_solutions_arr, rate_constants_arr, gammas_results_arr, gammas_simulated_sum = self._run_simulation_with_updated_reactions(self.exp_data_arr, current_reactions_list, solver_type="fixed_point")
+        
+        if gammas_simulated_sum is None or np.all(np.isnan(gammas_simulated_sum)):
+            logging.warning(f"Call #{current_call_number}: Simulation failed or returned all NaN gammas. Loss set to infinity.")
+            return np.inf # Or a very large number if np.inf is problematic for optimizer
+        
+        if len(self.gamma_exp_data) != len(gammas_simulated_sum):
+            logging.error(f"Call #{current_call_number}: Mismatch in length between experimental gamma ({len(self.gamma_exp_data)}) "
+                        f"and simulated gamma sum ({len(gammas_simulated_sum)}). Returning Inf loss.")
+            return np.inf
+        
+        
+        valid_indices = ~np.isnan(gammas_simulated_sum) & ~np.isnan(self.gamma_exp_data)
+        if not np.any(valid_indices):
+            logging.warning(f"No valid (non-NaN) gamma pairs for loss calculation. Returning Inf loss.")
+            return np.inf
+        
+        loss = self.loss_function(self.gamma_exp_data[valid_indices], gammas_simulated_sum[valid_indices])
+        
+        if self.use_logging:
+            log_msg = f"Loss = {loss:.4e}"
+            logging.info(log_msg)
+        
+        return loss, frac_solutions_arr, rate_constants_arr, gammas_results_arr, gammas_simulated_sum
     
+    
+    
+    
+    ###! Model Free Approches
     
     
     def hybrid_optimization_search(self, config: Dict[str, Any], num_workers: int = 9, local_refinement: bool = False) -> Tuple[Optional[np.ndarray], Optional[float]]:
@@ -264,7 +262,7 @@ class Optimizer():
                     tol=0.01,
                     recombination=0.7,
                     polish=de_polish,
-                    disp=True,         # Quieter output, rely on logging
+                    disp=True,          # Quieter output, rely on logging
                     workers=pool.map,   # Parallel evaluation of population
                     updating="deferred" # Good for parallel,
                 )
