@@ -5,8 +5,8 @@ import time
 import logging
 from typing import Dict, List, Callable, Any, Optional, Union, Tuple
 
-import SimParser as sim_par
-import SimRater as sim_rater
+import src.SimParser as sim_par
+import src.SimRater as sim_rater
 
 
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

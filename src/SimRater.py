@@ -4,7 +4,7 @@ import h5py
 import logging
 from typing import Dict, List, Callable, Any, Optional, Tuple
 
-import rates as rates_module
+import src.rates as rates_module
 
 # logger = logging.getLogger(__name__)
 

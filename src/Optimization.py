@@ -178,40 +178,40 @@ class Optimizer():
     
     
     
-    def update_reaction_list(self, reactions_list, dict_new_vec):
-        ###* update the reaction list
-        id2index_model = {reaction['id']: idx for idx, reaction in enumerate(reactions_list)}
+    # def update_reaction_list(self, reactions_list, dict_new_vec):
+    #     ###* update the reaction list
+    #     id2index_model = {reaction['id']: idx for idx, reaction in enumerate(reactions_list)}
         
-        for dict_new in dict_new_vec:
-            mod_update = dict_new["model_dict"]
+    #     for dict_new in dict_new_vec:
+    #         mod_update = dict_new["model_dict"]
             
-            if dict_new["id"] is not None:
-                idx = id2index_model[dict_new["id"]]
-                reactions_list[idx]["model_dict"].update(mod_update)
+    #         if dict_new["id"] is not None:
+    #             idx = id2index_model[dict_new["id"]]
+    #             reactions_list[idx]["model_dict"].update(mod_update)
                 
-            else:
+    #         else:
                 
-                if dict_new["rate"] is not None:
-                    idx2update = [idx for idx, reaction in enumerate(reactions_list) if reaction["rate"] == dict_new["rate"]]
-                    for idx in idx2update:
-                        reactions_list[idx]["model_dict"].update(mod_update)
-                else:
+    #             if dict_new["rate"] is not None:
+    #                 idx2update = [idx for idx, reaction in enumerate(reactions_list) if reaction["rate"] == dict_new["rate"]]
+    #                 for idx in idx2update:
+    #                     reactions_list[idx]["model_dict"].update(mod_update)
+    #             else:
                     
-                    if len(mod_update) == 1:
-                        param_update = next(iter(mod_update))
-                    else:
-                        raise ValueError(f"Dictionaire 'model_dict' has multiple keys: {dict_new}")
+    #                 if len(mod_update) == 1:
+    #                     param_update = next(iter(mod_update))
+    #                 else:
+    #                     raise ValueError(f"Dictionaire 'model_dict' has multiple keys: {dict_new}")
                     
-                    idx2update = []
-                    for idx, reaction in enumerate(reactions_list):
-                        reaction_model_dict = reactions_list[idx]['model_dict']
-                        if param_update in reaction_model_dict.keys():
-                            idx2update.append(idx)
+    #                 idx2update = []
+    #                 for idx, reaction in enumerate(reactions_list):
+    #                     reaction_model_dict = reactions_list[idx]['model_dict']
+    #                     if param_update in reaction_model_dict.keys():
+    #                         idx2update.append(idx)
                             
-                    for idx in idx2update:
-                        reactions_list[idx]["model_dict"].update(mod_update)
+    #                 for idx in idx2update:
+    #                     reactions_list[idx]["model_dict"].update(mod_update)
         
-        return reactions_list
+    #     return reactions_list
     
     
     
