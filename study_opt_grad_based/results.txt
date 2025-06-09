@@ -1,0 +1,62 @@
+Input Space Discretization:
+Lower Bounds: [1.e-08 1.e-08 0.e+00 1.e-08 1.e-08 0.e+00 1.e-05 1.e-05 1.e-05 1.e-05]
+Upper Bounds: [ 0.1  0.1 30.   0.1  0.1 30.   1.   1.   1.   1. ]
+Number of Samples: 4
+
+Optimization Results:
+Best Result:
+Message: CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH
+Status: 0
+Success: True
+Iterations: 6Loss: 0.06751947486243806
+Parameters: [1.28509959e-02 2.66067760e-02 1.44720084e+01 9.25273624e-02
+ 5.28037944e-02 1.48865877e+01 2.68659068e-01 9.02307543e-01
+ 1.64687928e-01 1.15508297e-01]
+Iterations: 6
+Function Evaluations: 40
+Gradient Evaluations: 40
+
+Message: ABNORMAL_TERMINATION_IN_LNSRCH
+Status: 2
+Success: False
+Iterations: 1Loss: 0.7236293108682704
+Parameters: [1.93341421e-02 2.27761612e-02 2.70505378e+01 6.83966067e-02
+ 6.55131303e-02 1.95748592e+01 7.15746905e-01 3.99405793e-01
+ 7.57740355e-01 7.86389730e-01]
+Iterations: 1
+Function Evaluations: 20
+Gradient Evaluations: 20
+
+Message: CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH
+Status: 0
+Success: True
+Iterations: 6Loss: 0.06751947486243806
+Parameters: [1.28509959e-02 2.66067760e-02 1.44720084e+01 9.25273624e-02
+ 5.28037944e-02 1.48865877e+01 2.68659068e-01 9.02307543e-01
+ 1.64687928e-01 1.15508297e-01]
+Iterations: 6
+Function Evaluations: 40
+Gradient Evaluations: 40
+
+Message: CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH
+Status: 0
+Success: True
+Iterations: 2Loss: 0.7213817155479685
+Parameters: [6.72330841e-04 6.11601256e-02 2.17331496e+01 8.66488150e-02
+ 7.62165364e-02 5.61092426e+00 8.99704589e-01 1.43397230e-01
+ 3.00515886e-01 4.58219890e-01]
+Iterations: 2
+Function Evaluations: 22
+Gradient Evaluations: 22
+
+Message: CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH
+Status: 0
+Success: True
+Iterations: 2Loss: 0.7948527908391944
+Parameters: [9.99999999e-02 1.00000000e-01 3.00000000e+01 1.00000000e-08
+ 1.00000000e-08 0.00000000e+00 1.00000000e+00 1.55349585e-01
+ 4.95999139e-01 4.05054465e-01]
+Iterations: 2
+Function Evaluations: 8
+Gradient Evaluations: 8
+
