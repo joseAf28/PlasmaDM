@@ -25,7 +25,7 @@ PlasmaDM provides a flexible, extensible platform to simulate plasma-surface rea
 
 Now, we present a brief introduction to the theoretical formulation addressed on this paper.  The general formulation of the system corresponds to:
 $$
-\frac{d\vec{y}(t)}{dt} = \vec{F}(\vec{x}, \vec{y}(t);\theta), ~~ \vec{y}(t_0) = \vec{y}_0
+\frac{d}{dt}\vec{y}(t) = \vec{F}(\vec{x}, \vec{y}(t);\theta), ~~ \vec{y}(t_0) = \vec{y}_0
 $$
 
 where
@@ -125,7 +125,8 @@ The project is composed of the following classes and methods that perform the fo
 - The `SimRater` class calculates the rates for each chemical equation provided in the surface kinetic scheme for all experimental conditions. 
 - The `Simulator` class leverages the `SimData`, `SimParser`, and `SimRater` classes and computes steady-state surface chemical concentrations and the output observable using Scipy numerical methods (ODE solvers)
 - The `Optimizer` class modifies the simulator hyperparameters provided on the surface kinetics scheme that is chosen to be optimized and computes the objective loss.
-- The `OptimizationMethods` and `ErrorPropagation` classes enable us to solve the optimization problem using either model-free or model-based algorithms and to propagate errors from the input experimental conditions to the output observable, respectively.
+- The `Model-free Methods`, `Model-based Methods` and `Grad-based methods`  classes enable us to solve the optimization problem using either model-free or model-based algorithms.
+- The `ErrorPropagation` class allows us to propagate errors from the input experimental conditions to the output observable.
 
 ![Code Structure](/Users/joseafonso/Desktop/PlasmaDM/figures/Code_Structure.png)
 
@@ -149,11 +150,11 @@ For optimization we use three different approaches:
 
   $$
   J\left(\theta\right) = \frac{1}{|D|}\sum_{m \in D } \left( \frac{\gamma_m(\theta) - \gamma_{exp, m}}{\gamma_{exp, m}} \right)^2 \newline
-  \gamma_m(\theta) = \sum_k [T_1(\theta)]_k y^*(\theta)_k + \sum_{kl} [T_2(\theta)]_{kl} y^*(\theta)_k y^*(\theta)_l, w
+  \gamma_m(\theta) = \sum_k [T_1(\theta)]_k y^*(\theta)_k + \sum_{kl} [T_2(\theta)]_{kl} y^*(\theta)_k y^*(\theta)_l
   $$
   where we have that:
   $$
-  \vec{F}(x, y^*(x, \theta); \theta) = \vec{0}
+  \vec{F}(\vec{x}, \vec{y}^*(\vec{x}, \theta); \theta) = \vec{0}
   $$
 
   As a result the derivatives are given by:
@@ -168,8 +169,6 @@ For optimization we use three different approaches:
   + \sum_{ln} \left[ T_2(\theta) + T^T_2(\theta) \right]_{ln} y^*_l \frac{\partial y^*_n}{\partial \theta_m}
   $$
 
-  
-
   Using the **Implicit Differentiation** Theorem:
   $$
   \frac{d F_i}{d\theta_m} = 0 \implies \frac{\partial F_i}{\partial \theta_m} + \sum_n\frac{\partial F_i}{\partial y_n} \frac{\partial y_n}{\partial \theta_m} = 0 \newline
@@ -178,7 +177,7 @@ For optimization we use three different approaches:
   $$
   where  we have that: $[\partial_{\theta} F] \in \mathbb{R}^{\#F \times \#\theta}$, $[\partial_{y} F] \in \mathbb{R}^{\#F \times \#y}$ and $[\partial_{\theta} y] \in \mathbb{R}^{\#y \times \#\theta}$ .  Since, $[\partial_y F]$ is not a square matrix, this system of equations is solved in the least-square sense.
 
-  
+  ![Scaling Plot](/Users/joseafonso/Desktop/PlasmaDM/study_opt_grad_based/scaling_grads.png)
 
 - Model-based methods: To be explored (Surrogate model with GP, Active Learning, ...)
 

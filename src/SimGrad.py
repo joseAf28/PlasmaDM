@@ -26,7 +26,7 @@ class SimDiff():
         self.rx_no_update_vec = [f"r_{rx['id']}" for rx in sim.output_parser['reactions_list']  if not f"r_{rx['id']}" in self.rx_update_vec]
         
         self.idx_update_vec, self.idx_update_groups = self._select_reactions_update(sim.output_parser['reactions_list'], new_update_dict)
-        self.idx_no_update_vec = [idx for idx, rx in enumerate(sim.output_parser['reactions_list']) if not rx['id'] in self.idx_update_vec]
+        self.idx_no_update_vec = [idx for idx, rx in enumerate(sim.output_parser['reactions_list']) if not f"r_{rx['id']}" in self.rx_update_vec]
         
         gamma_idx_vec = [idx for idx, rx in enumerate(self.sim.output_parser['reactions_list']) if rx.get('gamma', False)]
         self.gamma_update_idx = [idx for idx in gamma_idx_vec if idx in self.idx_update_vec]
