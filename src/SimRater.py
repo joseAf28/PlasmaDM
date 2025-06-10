@@ -100,48 +100,6 @@ class SimulatorRates():
     
     
     
-    # def compute_rates_simulation(self, exp_vec_arr: np.ndarray, reactions_list: List[Dict[str, Any]]) -> np.ndarray:
-        
-    #     if exp_vec_arr.size == 0:
-    #         logging.warning("exp_vec_arr is empty. Cannot compute rates.")
-    #         return np.array([[]])
-    #     if not reactions_list:
-    #         logging.warning("reactions_list is empty. Cannot compute rates.")
-    #         return np.zeros((len(exp_vec_arr), 0))
-        
-    #     num_experiments = len(exp_vec_arr)
-    #     num_reactions = len(reactions_list)
-    #     rates_calculation_arr = np.zeros((num_experiments, num_reactions), dtype=float)
-        
-    #     logging.info(f"Computing rate constants for {num_experiments} experiments and {num_reactions} reactions...")
-        
-    #     for i in range(num_experiments):
-    #         current_exp_condition = exp_vec_arr[i] # This is a dict
-    #         for j in range(num_reactions):
-    #             reaction = reactions_list[j]
-    #             model_dict_params = reaction.get('model_dict', {})
-                
-    #             rate_params_for_func = model_dict_params.copy()
-    #             rate_params_for_func['gas_specie'] = reaction.get('gas_specie') # e.g. "O2"
-                
-    #             rate_label = reaction['rate']
-    #             if rate_label not in self.available_rates_functions:
-    #                 logging.error(f"Rate function for label '{rate_label}' not found in preloaded functions. Reaction ID: {reaction.get('id')}")
-    #                 rates_calculation_arr[i, j] = np.nan
-    #                 continue
-                
-    #             rate_function = self.available_rates_functions[rate_label]
-    #             try:
-    #                 rate_value = rate_function(self.const_dict, current_exp_condition, rate_params_for_func)
-    #                 rates_calculation_arr[i, j] = rate_value
-    #             except Exception as e:
-    #                 logging.error(f"Error computing rate for reaction '{reaction.get('id')}' (label: {rate_label}), exp condition {i}: {e}")
-    #                 rates_calculation_arr[i, j] = np.nan # Mark as problematic
-
-    #     logging.info("Rate constants computation complete.")
-    #     return rates_calculation_arr
-    
-    
     def compute_rates_simulation(self, exp_vec_arr: np.ndarray, reactions_list: List[Dict[str, Any]], flag_arr = "numpy") -> np.ndarray:
         
         if exp_vec_arr.size == 0:
