@@ -163,17 +163,17 @@ For optimization we use three different approaches:
   $$
 
   $$
-  \frac{\partial \gamma(\theta)}{\partial\theta_m} = \sum_k \left(\frac{\partial}{\partial \theta_m} [T_1(\theta)]_k \right) y^*_k 
-  + \sum_{ln} \left( \frac{\partial}{\partial \theta_m} [T_2(\theta)]_{ln}\right) y^*_l y^*_n 
-  + \sum_k[T_1(\theta)]_k \frac{\partial y^*_k}{\partial\theta_m}  
-  + \sum_{ln} \left[ T_2(\theta) + T^T_2(\theta) \right]_{ln} y^*_l \frac{\partial y^*_n}{\partial \theta_m}
+  \frac{\partial \gamma(\theta)}{\partial\theta_i} = \sum_k \left(\frac{\partial}{\partial \theta_i} [T_1(\theta)]_k \right) y^*_k 
+  + \sum_{ln} \left( \frac{\partial}{\partial \theta_i} [T_2(\theta)]_{ln}\right) y^*_l y^*_n 
+  + \sum_k[T_1(\theta)]_k \frac{\partial y^*_k}{\partial\theta_i}  
+  + \sum_{ln} \left[ T_2(\theta) + T^T_2(\theta) \right]_{ln} y^*_l \frac{\partial y^*_n}{\partial \theta_i}
   $$
 
   Using the **Implicit Differentiation** Theorem:
   $$
   \frac{d F_i}{d\theta_m} = 0 \implies \frac{\partial F_i}{\partial \theta_m} + \sum_n\frac{\partial F_i}{\partial y_n} \frac{\partial y_n}{\partial \theta_m} = 0 \newline
   \Leftrightarrow [\partial_{\theta} F]_{im} + \sum_n [\partial_y F]_{in} [\partial_{\theta} y]_{nm} = 0 \newline
-  \implies [\partial_{\theta}F] + [\partial_y F].[\partial_{\theta}y] = \vec{0} \newline
+  \implies [\partial_{\theta}F] + [\partial_y F].[\partial_{\theta}y] = \mathbb{0} \newline
   $$
   where  we have that: $[\partial_{\theta} F] \in \mathbb{R}^{\#F \times \#\theta}$, $[\partial_{y} F] \in \mathbb{R}^{\#F \times \#y}$ and $[\partial_{\theta} y] \in \mathbb{R}^{\#y \times \#\theta}$ .  Since, $[\partial_y F]$ is not a square matrix, this system of equations is solved in the least-square sense.
 
