@@ -127,7 +127,7 @@ The project is composed of the following classes and methods that perform the fo
 - The `Optimizer` class modifies the simulator hyperparameters provided on the surface kinetics scheme that is chosen to be optimized and computes the objective loss.
 - The `ErrorPropagation` class allows us to propagate errors from the input experimental conditions to the output observable.
 
-![Code Structure](../PlasmaDM/figures/Code_Structure.png)
+![Code Structure](./figures/Code_Structure.png)
 
 
 
