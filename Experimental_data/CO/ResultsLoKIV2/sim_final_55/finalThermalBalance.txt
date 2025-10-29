@@ -1,0 +1,4 @@
+                    Conduction = -2.13792563941258e+23 (eVm^-3s^-1)
+   Electron elastic collisions = +1.32456320492386e+21 (eVm^-3s^-1)
+                 Volume source = +1.64509363560187e+23 (eVm^-3s^-1)
+                   Wall source = +9.59172671868413e+22 (eVm^-3s^-1)

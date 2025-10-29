@@ -1,0 +1,162 @@
+                               Field = +2.84888889402883e-15 (eVm^3s^-1)
+           Elastic collisions (gain) = +1.39102677888658e-19 (eVm^3s^-1)
+           Elastic collisions (loss) = -7.99743895785847e-18 (eVm^3s^-1)
+                          CAR (gain) = +7.43671340094039e-20 (eVm^3s^-1)
+                          CAR (loss) = -5.40911656114621e-18 (eVm^3s^-1)
+     Excitation inelastic collisions = -2.76038713604106e-15 (eVm^3s^-1)
+  Excitation superelastic collisions = +1.05575715155739e-16 (eVm^3s^-1)
+    Vibrational inelastic collisions = -1.51505920233110e-16 (eVm^3s^-1)
+ Vibrational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+     Rotational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Rotational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+               Ionization collisions = -1.49309217719484e-19 (eVm^3s^-1)
+               Attachment collisions = -9.70357443539715e-17 (eVm^3s^-1)
+             Electron density growth = +6.78065863682224e-17 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+                       Power Balance = -1.72624952775317e-28 (eVm^3s^-1)
+              Relative Power Balance =  5.71135909318130e-12%
+
+           Elastic collisions (gain) = +1.39102677888658e-19 (eVm^3s^-1)
+           Elastic collisions (loss) = -7.99743895785847e-18 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+            Elastic collisions (net) = -7.85833627996981e-18 (eVm^3s^-1)
+
+                          CAR (gain) = +7.43671340094039e-20 (eVm^3s^-1)
+                          CAR (gain) = -5.40911656114621e-18 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+                           CAR (net) = -5.33474942713681e-18 (eVm^3s^-1)
+
+     Excitation inelastic collisions = -2.76038713604106e-15 (eVm^3s^-1)
+  Excitation superelastic collisions = +1.05575715155739e-16 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Excitation collisions (net) = -2.65481142088532e-15 (eVm^3s^-1)
+
+    Vibrational inelastic collisions = -1.51505920233110e-16 (eVm^3s^-1)
+ Vibrational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+        Vibrational collisions (net) = -1.51505920233110e-16 (eVm^3s^-1)
+
+     Rotational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Rotational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Rotational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+************************************* O2 *************************************
+
+     Excitation inelastic collisions = -2.17061596076536e-15 (eVm^3s^-1)
+  Excitation superelastic collisions = +1.05453917913320e-16 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Excitation collisions (net) = -2.06516204285204e-15 (eVm^3s^-1)
+
+    Vibrational inelastic collisions = -1.51505920233110e-16 (eVm^3s^-1)
+ Vibrational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+        Vibrational collisions (net) = -1.51505920233110e-16 (eVm^3s^-1)
+
+     Rotational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Rotational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Rotational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+               Ionization collisions = -1.41920692792271e-19 (eVm^3s^-1)
+               Attachment collisions = -9.70357443539715e-17 (eVm^3s^-1)
+
+************************************* O **************************************
+
+     Excitation inelastic collisions = -5.89771175275698e-16 (eVm^3s^-1)
+  Excitation superelastic collisions = +1.21797242419095e-19 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Excitation collisions (net) = -5.89649378033279e-16 (eVm^3s^-1)
+
+    Vibrational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+ Vibrational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+        Vibrational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+     Rotational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Rotational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Rotational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+               Ionization collisions = -7.38852492721323e-21 (eVm^3s^-1)
+               Attachment collisions = +0.00000000000000e+00 (eVm^3s^-1)
+
+************************************* CO2 ************************************
+
+     Excitation inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Excitation superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Excitation collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+    Vibrational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+ Vibrational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+        Vibrational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+     Rotational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Rotational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Rotational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+               Ionization collisions = +0.00000000000000e+00 (eVm^3s^-1)
+               Attachment collisions = +0.00000000000000e+00 (eVm^3s^-1)
+
+************************************* CO *************************************
+
+     Excitation inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Excitation superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Excitation collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+    Vibrational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+ Vibrational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+        Vibrational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+     Rotational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Rotational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Rotational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+               Ionization collisions = +0.00000000000000e+00 (eVm^3s^-1)
+               Attachment collisions = +0.00000000000000e+00 (eVm^3s^-1)
+
+************************************* C **************************************
+
+     Excitation inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Excitation superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Excitation collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+    Vibrational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+ Vibrational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+        Vibrational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+     Rotational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Rotational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Rotational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+               Ionization collisions = +0.00000000000000e+00 (eVm^3s^-1)
+               Attachment collisions = +0.00000000000000e+00 (eVm^3s^-1)
+
+************************************* O3 *************************************
+
+     Excitation inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Excitation superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Excitation collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+    Vibrational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+ Vibrational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+        Vibrational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+     Rotational inelastic collisions = +0.00000000000000e+00 (eVm^3s^-1)
+  Rotational superelastic collisions = +0.00000000000000e+00 (eVm^3s^-1) +
+ -------------------------------------------------------------------------
+         Rotational collisions (net) = +0.00000000000000e+00 (eVm^3s^-1)
+
+               Ionization collisions = +0.00000000000000e+00 (eVm^3s^-1)
+               Attachment collisions = +0.00000000000000e+00 (eVm^3s^-1)

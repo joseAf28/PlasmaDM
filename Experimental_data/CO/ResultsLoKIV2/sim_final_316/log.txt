@@ -1,0 +1,82 @@
+******************************************************************************
+*     __    _      __    ____           __ __ ____           __  _           *
+*    / /   (_)____/ /_  / __ \____     / //_//  _/___  ___  / /_(_)_________ *
+*   / /   / / ___/ __ \/ / / / __ \   / ,<   / // __ \/ _ \/ __/ / ___/ ___/ *
+*  / /___/ (__  ) /_/ / /_/ / / / /  / /| |_/ // / / /  __/ /_/ / /__(__  )  *
+* /_____/_/____/_.___/\____/_/ /_/  /_/ |_/___/_/ /_/\___/\__/_/\___/____/   *
+*                                                                            *
+*                   _        _  _____       ____  _   __                     *
+*                  | |   ___| |/ /_ _| __ _|__ / / | /  \                    *
+*                  | |__/ _ \ ' < | |  \ V /|_ \_| || () |                   *
+*                  |____\___/_|\_\___|  \_/|___(_)_(_)__/                    *
+*                                                                            *
+******************************************************************************
+Parsing setup file ...
+  Finished (0.354016 seconds).
+Performing selfdiagnostic of the setup file ...
+  Finished (0.001234 seconds).
+Initializing simulation:
+	- Setting up electron kinetics ...
+	    Finished (0.638184 seconds).
+	- Setting up heavy-species kinetics ...
+	    Finished (0.618754 seconds).
+	- Setting up other components ...
+	    Finished (0.001016 seconds).
+	- Configuring CLI ...
+	    Finished (0.003311 seconds).
+	- Setting up Output ...
+	    Finished (0.014658 seconds).
+  Finished (1.432686 seconds).
+Starting calculations: ...
+	- Solving Boltzmann ...
+	- Updated electron temperature (2.46114 eV).
+	    Finished (0.517509 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.675133 seconds).
+	- New pressure cycle iteration (1): relative error = -7.305176e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.324754 seconds).
+	- New pressure cycle iteration (2): relative error = 2.413119e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.326318 seconds).
+	- New pressure cycle iteration (3): relative error = 1.790043e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.311775 seconds).
+	- New pressure cycle iteration (4): relative error = 1.243892e-03
+	- New neutrality cycle iteration (1): relative error = -3.026665e+03
+	- Updated reduced field (50 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.39724 eV).
+	    Finished (1.555858 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.273187 seconds).
+	- New pressure cycle iteration (4): relative error = 3.712347e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.263716 seconds).
+	- New pressure cycle iteration (5): relative error = 1.315945e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.269665 seconds).
+	- New pressure cycle iteration (6): relative error = 1.403866e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.273819 seconds).
+	- New pressure cycle iteration (7): relative error = -1.985650e-04
+	- New neutrality cycle iteration (2): relative error = -7.898877e+00
+	- Updated reduced field (25 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (0.653052 eV).
+	    Finished (0.943225 seconds).
+	- Integrating particle rate-balance equations ...
+	    Finished (0.275141 seconds).
+	- New pressure cycle iteration (7): relative error = 2.902350e-01
+	- Integrating particle rate-balance equations ...
+	    Finished (0.273336 seconds).
+	- New pressure cycle iteration (8): relative error = 8.420751e-02
+	- Integrating particle rate-balance equations ...
+	    Finished (0.234848 seconds).
+	- New pressure cycle iteration (9): relative error = 7.080221e-03
+	- New neutrality cycle iteration (3): relative error = 1.000320e+00
+	- Updated reduced field (37.5 Td).
+	- Solving Boltzmann ...
+	- Updated electron temperature (1.06618 eV).
+	    Finished (1.406765 seconds).
+	- Integrating particle rate-balance equations ...

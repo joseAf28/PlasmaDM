@@ -2,6 +2,7 @@ import copy
 import torch 
 import numpy as np
 import sympy as sy
+import logging
 
 import src.Simulator as sim
 # import ratesSimb as rates
@@ -104,7 +105,6 @@ class SimDiff():
     
     
     def create_symbolic_system(self, no_update_rx, update_rx):
-        ##! error
         torch_map = {
             'Add': torch.add,
             'Mul': torch.mul,
@@ -259,6 +259,78 @@ class SimDiff():
             up_row = self.sim.sim_rates_handler.compute_rates_simulation(exp_data_up, updated_reactions_list, flag_arr='torch').squeeze(0)
             no_up_row = no_update_rates[counter]
             
+            Jx = jacobian(lambda den: self.F_torch(den, params_torch, no_up_row, counter), y_saddle, create_graph=True)
+            Jtheta = jacobian(lambda theta: self.F_torch(y_saddle, theta, no_up_row, counter), params_torch, create_graph=True)
+            
+            sol = torch.linalg.lstsq(Jx, Jtheta)
+            dy_dtheta = - sol.solution
+            
+            ###* Check residual
+            resid = (Jx @ dy_dtheta + Jtheta).abs().sum().item()
+            if resid > 1e-2 and residual_flag:
+                print(f"FIxed Point Error residual {resid} for condition {counter}")
+            
+            T1_vec_const, T2_mat_const = self.T1_T2_const(rates_arr, counter)
+            T1_vec_grad, T2_mat_grad = self.T1_T2_grad(up_row, counter)
+            
+            ##* dgamma/dtheta implicit path 
+            T1_total = T1_vec_const + T1_vec_grad
+            T2_total = T2_mat_const + T2_mat_grad
+            
+            mat = T1_total + (T2_total + T2_total.T) @ y_saddle
+            d_gamma_implicit = (mat.unsqueeze(0) @ dy_dtheta).squeeze()
+            
+            ###* dgamma/dtheta explicit path
+            if len(self.gamma_update_idx) != 0:
+                
+                gamma1 = (y_saddle * T1_vec_grad).sum()
+                gamma2 = (y_saddle.unsqueeze(0) @ (T2_mat_grad @ y_saddle.unsqueeze(1))).squeeze()
+                gamma12 = gamma1 + gamma2
+                
+                d_gamma_explicit = torch.autograd.grad(
+                    outputs=gamma12,
+                    inputs=params_torch,
+                    retain_graph=True,       
+                    create_graph=False       
+                )[0]
+            else:
+                d_gamma_explicit = torch.zeros_like(d_gamma_implicit)
+            
+            grad_gamma[counter, :] = d_gamma_explicit + d_gamma_implicit
+            
+            
+        factor = (2.0 / self.gamma_exp_torch**2) * (gamma_predicted_torch - self.gamma_exp_torch)
+        dJdtheta = (grad_gamma.T @ factor) / float(num_data)
+        return dJdtheta
+    
+
+
+    ###* compute the derivatives of the F and T1 and T2
+    def objective_function_grad_element_wise(self, params, frac_solutions_arr, rates_arr, gamma_predicted_arr, residual_flag=False):
+        
+        frac_solutions_torch = torch.tensor(frac_solutions_arr, dtype=torch.float64)
+        gamma_predicted_torch = torch.tensor(gamma_predicted_arr, dtype=torch.float64)
+        
+        num_data = frac_solutions_torch.shape[0]
+        num_species = frac_solutions_torch.shape[1]
+        
+        params_torch = torch.tensor(params, dtype=torch.float64, requires_grad=True)
+        num_params   = params_torch.numel()   
+        no_update_rates = torch.tensor(rates_arr[:, self.idx_no_update_vec], dtype=torch.float64)
+        
+        grad_gamma = torch.zeros((num_data, num_params), dtype=torch.float64)
+        
+        for counter in range(num_data):
+            
+            exp_data_up = self.sim.exp_data_arr[counter:counter+1]
+            y_saddle = frac_solutions_torch[counter]
+            
+            new_update_dict = self.func_optimization(params_torch)
+            updated_reactions_list = self._update_reactions_list_for_params(self.sim.output_parser['reactions_list'], new_update_dict)
+            
+            up_row = self.sim.sim_rates_handler.compute_rates_simulation(exp_data_up, updated_reactions_list, flag_arr='torch').squeeze(0)
+            no_up_row = no_update_rates[counter]
+            
             J_den = jacobian(lambda den: self.F_torch(den, params_torch, no_up_row, counter), y_saddle)
             J_theta = jacobian(lambda theta: self.F_torch(y_saddle, theta, no_up_row, counter), params_torch)
             
@@ -298,7 +370,4 @@ class SimDiff():
             
             grad_gamma[counter, :] = d_gamma_explicit + d_gamma_implicit
             
-            
-        factor = (2.0 / self.gamma_exp_torch**2) * (gamma_predicted_torch - self.gamma_exp_torch)
-        dJdtheta = (grad_gamma.T @ factor) / float(num_data)
-        return dJdtheta
+        return grad_gamma

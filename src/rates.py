@@ -94,7 +94,9 @@ def create_meta(const_dict, exp_dict, model_dict):
     IntMB = sp.integrate.quad(MB_func, Emin, 40*Emin, args=(TavgMB, kBoltz))[0]
     
     surface = F0 + S0
-    flux = exp_dict["Ion"]
+    # flux = exp_dict["Ion"]
+    ###! So far, I only consider the O case, I have no estimation for COfast, ...
+    flux = exp_dict["Ion"] if gas_specie == "O2fast" else 0.0
     
     ratio_temp = (np.exp(-E_di / (R * Tw)) + np.exp(-E_de / (R * Tw))) \
         / (np.exp(-E_di / (R * 323.15)) + np.exp(-E_de / (R * 323.15)))
@@ -134,6 +136,7 @@ def recomb_ER_meta(const_dict, exp_dict, model_dict):
     
     surface = F0 + S0
     flux = exp_dict["flux" + gas_specie]
+    
     Ealpha = Ealpha * kBoltz
     Intalpha = sp.integrate.quad(MB_func, Ealpha, 40*Ealpha, args=(Tnw, kBoltz))[0]
     

@@ -1,0 +1,10 @@
+
+%---- O surface kinetics ----
+O(3P) + O3(P) -> O2(X)                                          | constantRateCoeff	| 0.0  |   % just to allow the existance of the species                      
+
+O(3P) + wall_F(v) -> wall_O(F)                                          | thermalEffusionSurface_SKO    | 1, 0, nearWallTemperature                         |
+wall_O(F) -> O(3P) + wall_F(v)                                          | thermalDesorption             | 1.0e15, 30e3                                      |
+O(3P) + wall_S(v) -> wall_O(S)                                          | thermalEffusionSurface_SKO    | 1, 0, nearWallTemperature                         |
+O(3P) + wall_O(S) -> wall_S(v) + O2(X)                                  | thermalEffusionSurface_SKO    | 1, 15e3, nearWallTemperature, gamma               |
+wall_O(F) + wall_S(v) -> wall_O(S) + wall_F(v) + O2(X)                  | surfaceTransport              | 1e13, 15e3, 1, 0, true                            |
+wall_O(F) + wall_O(S) ->  wall_F(v) + wall_S(v)  + O2(X)                | surfaceTransport              | 1e13, 15e3, 1, 20.0e3, false, gamma               |

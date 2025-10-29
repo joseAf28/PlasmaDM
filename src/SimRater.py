@@ -123,7 +123,7 @@ class SimulatorRates():
                     
                     rate_params_for_func = model_dict_params.copy()
                     rate_params_for_func['gas_specie'] = reaction.get('gas_specie') # e.g. "O2"
-                    
+
                     rate_label = reaction['rate']
                     if rate_label not in self.available_rates_functions:
                         logging.error(f"Rate function for label '{rate_label}' not found in preloaded functions. Reaction ID: {reaction.get('id')}")

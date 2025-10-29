@@ -13,7 +13,7 @@
     },
     {
         "id": 4, "equation": "O + O_F -> O2 + V_F", "rate": "recomb_ER", "gamma": true,
-        "model_dict": {"SF": 1.0, "E": 0.0}
+        "model_dict": {"SF": 1.0, "E": 15.0}
     },
     {
         "id": 5, "equation": "O_F + V_S -> V_F + O_S", "rate": "diffusion", "gamma": false,
@@ -60,7 +60,7 @@
 
 
     {
-        "id": 16, "equation": "O2fast + O_S -> S + Vdb_S + O2 + O", "rate": "create_meta", "gamma": false,
+        "id": 16, "equation": "O2fast + O_S -> Vdb_S + O2 + O", "rate": "create_meta", "gamma": false,
         "model_dict": {"SF": 1.0, "E": 0.0, "Emin": 2.9, "E_de": 30.0, "E_di": 15.0}
     },
     {
@@ -135,12 +135,7 @@
         "id": 33, "equation": "O + CO_F -> CO2 + V_F", "rate": "recomb_ER", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 0.0}
     },
-    
 
-
-
-
-    
     {
         "id": 34, "equation": "CO_F + O_F -> CO2 + 2 V_F", "rate": "recomb_LH", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 29.0, "nu_D": 1e13, "factor": 1.0}
@@ -157,6 +152,7 @@
         "id": 37, "equation": "CO + O_S -> CO2 + V_S", "rate": "recomb_ER", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 29.0}
     },
+    
     {
         "id": 38, "equation": "O_F + CO_S -> CO2 + V_F + V_S", "rate": "recomb_LH", "gamma": true,
         "model_dict": {"SF": 1e-1, "E": 49.0, "nu_D": 1e13, "factor": 1.0}

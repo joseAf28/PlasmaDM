@@ -206,3 +206,38 @@ class Optimizer():
             logging.info(log_msg)
         
         return loss, frac_solutions_arr, rate_constants_arr, gammas_results_arr, gammas_simulated_sum
+
+
+
+    def objective_function_diff_full(self, params: np.ndarray) -> float:
+        
+        param_update_instructions = self.func_new_model_dict(params)
+        current_reactions_list = self._update_reactions_list_for_params(self._base_reactions_list, param_update_instructions)
+        
+        frac_solutions_arr, rate_constants_arr, gammas_results_arr, gammas_simulated_sum = self._run_simulation_with_updated_reactions(self.exp_data_arr, current_reactions_list, solver_type="fixed_point")
+        
+        if gammas_simulated_sum is None or np.all(np.isnan(gammas_simulated_sum)):
+            logging.warning(f"Call #{current_call_number}: Simulation failed or returned all NaN gammas. Loss set to infinity.")
+            return np.inf # Or a very large number if np.inf is problematic for optimizer
+        
+        if len(self.gamma_exp_data) != len(gammas_simulated_sum):
+            logging.error(f"Call #{current_call_number}: Mismatch in length between experimental gamma ({len(self.gamma_exp_data)}) "
+                        f"and simulated gamma sum ({len(gammas_simulated_sum)}). Returning Inf loss.")
+            return np.inf
+        
+        
+        valid_indices = ~np.isnan(gammas_simulated_sum) & ~np.isnan(self.gamma_exp_data)
+        if not np.any(valid_indices):
+            logging.warning(f"No valid (non-NaN) gamma pairs for loss calculation. Returning Inf loss.")
+            return np.inf
+        
+        residuals = (gammas_simulated_sum[valid_indices] - self.gamma_exp_data[valid_indices]) / self.gamma_exp_data[valid_indices]
+        loss = np.mean(np.pow(residuals,2))
+        
+        # loss = self.loss_function(self.gamma_exp_data[valid_indices], gammas_simulated_sum[valid_indices])
+        
+        if self.use_logging:
+            log_msg = f"Loss = {loss:.4e}"
+            logging.info(log_msg)
+        
+        return loss, residuals, frac_solutions_arr, rate_constants_arr, gammas_results_arr, gammas_simulated_sum

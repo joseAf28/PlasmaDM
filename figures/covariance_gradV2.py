@@ -1,0 +1,317 @@
+
+import warnings
+import logging
+logging.disable(logging.WARNING)
+
+import multiprocessing as mp
+mp.set_start_method('spawn', force=True)   # MUST come before any torch import
+
+
+warnings.filterwarnings(
+    "ignore",
+    category=UserWarning,
+    module=r"joblib.*|loky.*"
+)
+
+
+logging.basicConfig(level=logging.ERROR)
+logging.getLogger("torch").setLevel(logging.ERROR)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+
+import sys, os
+PATH = os.path.dirname(os.path.abspath(os.curdir))
+if PATH not in sys.path:
+    sys.path.insert(0, PATH)
+    
+
+from multiprocessing import get_context
+from pathos.multiprocessing import ProcessPool
+from scipy.sparse.linalg import eigsh
+from functools import partial
+from tqdm import tqdm
+import scipy as sp
+import numpy as np
+import torch
+import h5py
+
+import src.Simulator as sim_system
+import src.Optimizer as opt
+import src.SimGrad as sim_diff
+import src.Grad_based_methods as grad_based
+
+seed = 42
+np.random.seed(seed)
+torch.manual_seed(seed)
+
+###* Create Simulator object
+reactions_file = "../reactions/reactionsCompleteV2.json"
+
+const_dict = {
+        "F0": 1.5e15,           # cm^-2
+        "S0": 3e13,             # cm^-2
+        
+        "R": 0.00831442,        # kJ/mol*K
+        "kBoltz": 1.380649e-23, # J/K
+}
+
+initial_state_dict = {'O_F': 0.1, 'O2_F':0.1 ,'O_S': 0.1, 'Vdb_S':0.1, 
+                    'Odb_S': 0.1, 'CO_F': 0.1, 'CO2_F':0.1, 'CO_S': 0.1, 
+                    'COdb_S': 0.0}
+
+###* Functions for the data transformation
+def compute_flux(const_dict, exp_dict, specie, molar_mass):
+    den = exp_dict.get(specie, 0.0)
+    v_th = np.sqrt((8.0 * const_dict['R'] * 1000 * exp_dict['Tnw'])/(molar_mass * np.pi))
+    flux = 0.25 * v_th * den * 100
+    return flux
+
+
+def compute_remaining_flux(const_dict, exp_dict, molar_mass): 
+    den = exp_dict['N'] - exp_dict['O'] - exp_dict['CO']
+    v_th = np.sqrt((8.0 * const_dict['R'] * 1000 * exp_dict['Tnw'])/(molar_mass * np.pi))
+    flux = 0.25 * v_th * den * 100
+    return flux
+
+####? EavgMB data extracted from the Booth et al. 2019 paper
+p_data_exp = [0.2, 0.3, 0.4, 0.5, 0.6, 0.75, 1.5]
+EavgMB_data = [1.04, 0.91, 0.87, 0.83, 0.77, 0.5, 0.001]
+interpolator = sp.interpolate.interp1d(p_data_exp, EavgMB_data, kind='linear', fill_value=0.001, bounds_error=False)
+
+
+transformations_exp = {
+    'Tw':       lambda const_dict, exp_dict: exp_dict['Tw'] + 273.15,
+    'fluxO' :   lambda const_dict, exp_dict: compute_flux(const_dict, exp_dict,'O', 0.016),
+    'fluxO2' :  lambda const_dict, exp_dict: compute_flux(const_dict, exp_dict,'O2', 0.032),
+    'fluxO3' :  lambda const_dict, exp_dict: compute_flux(const_dict, exp_dict,'O3', 0.048),
+    'fluxC':    lambda const_dict, exp_dict: compute_flux(const_dict, exp_dict, 'C', 0.012),
+    'fluxCO':   lambda const_dict, exp_dict: compute_flux(const_dict, exp_dict, 'CO', 0.028),
+    'fluxCO2':  lambda const_dict, exp_dict: compute_flux(const_dict, exp_dict, 'CO2', 0.048),
+    'EavgMB':   lambda const_dict, exp_dict: interpolator(exp_dict['pressure']).item(),
+    'Ion':      lambda const_dict, exp_dict: 1e14 * exp_dict["current"]
+}
+
+output_folder_path = "../Buffer_Data"
+exp_data_file = "Experimental_data_CO_Jorge.hdf5"
+exp_file = os.path.join(output_folder_path, exp_data_file)
+
+sim = sim_system.Simulator(reactions_file, const_dict, exp_file, initial_state_dict, transformations_exp=transformations_exp)
+
+
+lower_bounds = np.array([1e-8, 1e-8, 0.0, \
+                    1e-5, 1e-5, 1e-5, 1e-5, 1e-5, \
+                    1e-5, 1e-5, 1e-5, 1e-5
+                    ])
+
+upper_bounds = np.array([5e-1, 1e-2, 30.0, \
+                    1.0, 1.0, 1.0, 1.0, 1.0, \
+                    1.0, 1.0, 1.0, 1.0
+                    ])
+
+# lower_bounds = np.array([1e-8, 1e-8, 0.0, \
+#                     1e-5, 1e-5, 1e-5, 1e-5, 1e-5, \
+#                     1e-5, 1e-5, 1e-5, 1e-5
+#                     ])
+
+# upper_bounds = np.array([5e-1, 1e-2, 30.0, \
+#                     1.0, 1.0, 1.0, 1.0, 1.0, \
+#                     1.0, 1.0, 1.0, 1.0
+#                     ])
+
+
+###* Create optimization and diff objects
+
+# ##! define parameters to optimize
+# def func_optimization(params_input, flag='numpy'):
+    
+#     ##! normalize variables
+#     params = [0] * len(params_input)
+#     for idx, param in enumerate(params_input):
+#         params[idx] = lower_bounds[idx] + (upper_bounds[idx] - lower_bounds[idx]) * param
+    
+#     # A_d, B_d, E_d, SF_1, SF_2, SF_3, SF_4, SF_5, SF_6, SF_7, SF_8, SF_9, SF_10 = params
+#     A_d, B_d, E_d, SF_1, SF_2, SF_3, SF_4, SF_5, SF_6, SF_8, SF_9, SF_10 = params
+    
+#     if flag=='numpy':
+#         nu_d_mod = lambda T: 1e15 * (A_d + B_d * np.exp(E_d/(const_dict['R'] * T)))
+#     elif flag=='torch':
+#         nu_d_mod = lambda T: 1e15 * (A_d + B_d * torch.exp(E_d/(const_dict['R'] * T)))
+#     else:
+#         raise ValueError(f"{flag} does not exist")
+    
+#     dict_mod_vec = [
+#     {"id": 2, "rate": None, "model_dict": {"nu_d": nu_d_mod}},
+#     {"id": 10, "rate": None, "model_dict": {"nu_d": nu_d_mod}},
+#     {"id": 31, "rate": None, "model_dict": {"SF": SF_2, "nu_d": nu_d_mod}},
+    
+#     {"id": 30, "rate": None, "model_dict": {"SF": SF_1}},
+#     {"id": 32, "rate": None, "model_dict": {"SF": SF_3}},
+#     {"id": 33, "rate": None, "model_dict": {"SF": SF_4}},
+#     {"id": 34, "rate": None, "model_dict": {"SF": SF_5}},
+    
+#     {"id": 35, "rate": None, "model_dict": {"SF": SF_6}},
+#     # {"id": 36, "rate": None, "model_dict": {"SF": SF_7}},
+#     {"id": 37, "rate": None, "model_dict": {"SF": SF_8}},
+#     {"id": 38, "rate": None, "model_dict": {"SF": SF_9}},
+#     {"id": 39, "rate": None, "model_dict": {"SF": SF_10}},
+#     ]
+    
+#     return dict_mod_vec
+
+
+
+###! optimization function
+def func_optimization(params_input, flag='numpy'):
+    
+    ##! normalize variables
+    params = [0] * len(params_input)
+    for idx, param in enumerate(params_input):
+        params[idx] = lower_bounds[idx] + (upper_bounds[idx] - lower_bounds[idx]) * param
+    
+    A_d, B_d, E_d, SF_1, SF_2, SF_3, SF_4, SF_5, SF_6, SF_8, SF_9, SF_10 = params
+    
+    if flag=='numpy':
+        nu_d_mod = lambda T: 1e15 * (A_d + B_d * np.exp(E_d/(const_dict['R'] * T)))
+        SF_1, SF_2, SF_3, SF_4, SF_5 = np.exp(SF_1), np.exp(SF_2), np.log(SF_3), np.exp(SF_4), np.exp(SF_5)
+        SF_6, SF_8, SF_9, SF_10 = np.exp(SF_6), np.log(SF_8), np.exp(SF_9), np.exp(SF_10)
+    elif flag=='torch':
+        nu_d_mod = lambda T: 1e15 * (A_d + B_d * torch.exp(E_d/(const_dict['R'] * T)))
+        SF_1, SF_2, SF_3, SF_4, SF_5 = torch.exp(SF_1), torch.exp(SF_2), torch.exp(SF_3), torch.exp(SF_4), torch.exp(SF_5)
+        SF_6,  SF_8, SF_9, SF_10 = torch.exp(SF_6), torch.exp(SF_8), torch.exp(SF_9), torch.exp(SF_10)
+    else:
+        raise ValueError(f"{flag} does not exist")
+    
+    dict_mod_vec = [
+    {"id": 2, "rate": None, "model_dict": {"nu_d": nu_d_mod}},
+    {"id": 10, "rate": None, "model_dict": {"nu_d": nu_d_mod}},
+    {"id": 31, "rate": None, "model_dict": {"SF": SF_2, "nu_d": nu_d_mod}},
+    
+    {"id": 30, "rate": None, "model_dict": {"SF": SF_1}},
+    {"id": 32, "rate": None, "model_dict": {"SF": SF_3}},
+    {"id": 33, "rate": None, "model_dict": {"SF": SF_4}},
+    {"id": 34, "rate": None, "model_dict": {"SF": SF_5}},
+    
+    {"id": 35, "rate": None, "model_dict": {"SF": SF_6}},
+    # {"id": 36, "rate": None, "model_dict": {"SF": SF_7}},
+    {"id": 37, "rate": None, "model_dict": {"SF": SF_8}},
+    {"id": 38, "rate": None, "model_dict": {"SF": SF_9}},
+    {"id": 39, "rate": None, "model_dict": {"SF": SF_10}},
+    ]
+    
+    return dict_mod_vec
+
+
+##! define the default parameters
+# params_default_init = [
+#                 0.01634, 1.67e-4, 19.75, \
+#                 1.0, 1.0, 1e-2, 1e-1, 1e-1, \
+#                 1e-2, 1e-1, 1e-1, 1e-1, 1e-1
+#                 ]
+
+
+params_default_norm = []
+params_default_init = [
+                0.01634, 1.67e-4, 19.75, \
+                1.0, 1.0, 1e-2, 1e-1, 1e-1, \
+                1e-2, 1e-1, 1e-1, 1e-1
+                ]
+for idx, param in enumerate(params_default_init):
+    value = (param - lower_bounds[idx])/(upper_bounds[idx] - lower_bounds[idx])
+    if idx > 2:
+        params_default_norm.append(np.log(value))
+    else:
+        params_default_norm.append(value)
+
+
+# params_default_init = [
+#                 0.01634, 1.67e-4, 19.75, \
+#                 1.0, 1.0, 1e-2, 1e-1, 1e-1, \
+#                 1e-2, 1e-1, 1e-1, 1e-1
+#                 ]
+
+# params_default_norm = []
+# for idx, param in enumerate(params_default_init):
+#     value = (param - lower_bounds[idx])/(upper_bounds[idx] - lower_bounds[idx])
+#     params_default_norm.append(value)
+
+
+
+def lhs_sampling(n_samples, n_dims):
+    samples = np.zeros((n_samples, n_dims))
+    for j in range(n_dims):
+        perm = np.random.permutation(n_samples)
+        samples[:, j] = (perm + np.random.rand(n_samples)) / n_samples
+        
+    return samples
+
+
+def map_to_bounds(samples, lower_bounds, upper_bounds):
+    return lower_bounds + (upper_bounds - lower_bounds) * samples
+
+
+def loss_and_grads(params, opt_object, diff_object):
+    loss_val, frac_solutions_arr, rates_arr, _, gammas_predicted_arr = opt_object.objective_function_diff(params)
+    grad_val = diff_object.objective_function_grad(params, frac_solutions_arr, rates_arr, gammas_predicted_arr)
+    # print("loss_val: ", loss_val, "params: ", params)
+    return loss_val, grad_val.detach().numpy()
+
+
+def loss_function(exp, teo, flag='numpy'):
+    func = ((teo-exp)**2)/(exp**2)
+    if flag == 'numpy':
+        return np.mean(func)
+    elif flag == 'torch':
+        return torch.mean(func)
+    else:
+        raise ValueError(f"{flag} does not exist")
+
+
+
+
+###! run optimization pipeline
+if __name__ == '__main__':
+    
+    n_samples = 30
+    
+    optimizer = opt.Optimizer(sim, 
+                            lambda params: func_optimization(params, 'numpy'), 
+                            lambda exp, teo: loss_function(exp, teo, 'numpy')
+                            )
+    
+    diff = sim_diff.SimDiff(sim, 
+                            lambda params: func_optimization(params, 'torch'),
+                            params_default=torch.tensor(params_default_norm),
+                            gamma_exp_data=sim.gamma_exp_data_arr,
+                            loss_function=lambda exp, teo: loss_function(exp, teo, 'torch')
+                            )
+    
+    
+    samples_aux = lhs_sampling(n_samples, len(lower_bounds))
+    samples =  np.array(params_default_norm) + 0.5 * np.array(params_default_norm) * samples_aux
+    
+
+    pbar = tqdm(total=n_samples, desc="Generate Grads")
+    grads_arr = np.zeros((len(samples), len(lower_bounds)))
+        
+    for idx, sample in enumerate(samples):
+        loss_val, grad_val = loss_and_grads(sample, optimizer, diff)
+        grads_arr[idx,:] = grad_val
+        pbar.update(1)
+    pbar.close()
+        
+    with h5py.File("GradsV3.hdf5", "w") as f:
+        f.create_dataset("grads", data=grads_arr)
+
+    
+    
+    # print("grads: ", grads_arr)
+    
+    # ###* Grad Covariance Matrix
+    # grads_mean = grads_arr.mean(axis=0, keepdims=True)
+    # G = grads_arr - grads_mean
+    # Sigma = (G.T @ G)/ n_samples
+
+    # W = grad_based.gradient_similarity(Sigma)
+    # blocks = grad_based.spectral_blocks(W, n_blocks)
+    # print("Blocks: ", blocks)
+    
+    

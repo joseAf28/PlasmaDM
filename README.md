@@ -55,7 +55,7 @@ $$
 y_i + y_j \rightarrow y_{i'} + y_{j'} + D(g)
 $$
 
-This type correspond to mechanims like difusion or *LH*-recombination, where an atom diffuses along the surface is stabilishes a connection with other site
+This type correspond to mechanims like difusion or *LH*-recombination, where an atom diffuses along the surface is stabilishes a connection with other site.
 
 Using this mechanisms, we can develop , by using the surface scheme, a mesoscopic model that describes the average occupation of the surface by the different chemical species. However, the macroscopic obsrvable that can be measured corresponds to the recombination probability, $\gamma$, which is given by:
 $$
@@ -68,7 +68,7 @@ where $\hat{T}(\cdot)$ correspond to a operator that, by selecting the appropria
 
 Having the physical simulator that allow us to compute the observable, $\gamma$, for all the input conditions, we intend to tackle the optimization problem that corresponds to find the best parameters of the simulator, $\theta$, that describe better the experimental data. We can summarize the problem as:
 $$
-\min_{\theta}J(\theta) = \sum_{i\in D} \left( \frac{\gamma_{exp,i} - \gamma_i(\theta)}{\gamma_{exp,i}}\right)^2
+\min_{\theta}\Phi(\theta) = \sum_{i\in D} \left( \frac{\gamma_{exp,i} - \gamma_i(\theta)}{\gamma_{exp,i}}\right)^2
 $$
 where $i$ iterates over all the input experimental conditions considered.
 
@@ -125,60 +125,10 @@ The project is composed of the following classes and methods that perform the fo
 - The `SimRater` class calculates the rates for each chemical equation provided in the surface kinetic scheme for all experimental conditions. 
 - The `Simulator` class leverages the `SimData`, `SimParser`, and `SimRater` classes and computes steady-state surface chemical concentrations and the output observable using Scipy numerical methods (ODE solvers)
 - The `Optimizer` class modifies the simulator hyperparameters provided on the surface kinetics scheme that is chosen to be optimized and computes the objective loss.
-- The `Model-free Methods`, `Model-based Methods` and `Grad-based methods`  classes enable us to solve the optimization problem using either model-free or model-based algorithms.
 - The `ErrorPropagation` class allows us to propagate errors from the input experimental conditions to the output observable.
 
 ![Code Structure](/Users/joseafonso/Desktop/PlasmaDM/figures/Code_Structure.png)
 
 
 
-
-
-## Details Concerning the Implementation :
-
-#### Simulator: 
-
-The surface kinetics scheme is provided through a JSON file, which also includes the default model parameters, $\theta$, the rates used on each chemical equation and set of reactions that directly participate in the observable computation. An example of application is presented on folder tests.
-
-#### Optimization:
-
-For optimization we use three different approaches:
-
-- Model-free methods: Our exploration revolves mainly around the differential evolution algorithm. Examples of application are presented on the `study_opt_model_free` folder
-
-- Gradient based methods: Leverage on PyTorch, we compute the gradients efficiently (when compared to the numerical counterpart), which we provide for minimization algorithm used. Examples of application are presented on `study_opt_grad_based` folder. Considering the $J(\theta)$ and $\gamma_m(\theta)$ where $m$ corresponds to an input experimental condition, we define:
-
-  $$
-  J\left(\theta\right) = \frac{1}{|D|}\sum_{m \in D } \left( \frac{\gamma_m(\theta) - \gamma_{exp, m}}{\gamma_{exp, m}} \right)^2 \newline
-  \gamma_m(\theta) = \sum_k [T_1(\theta)]_k y^*(\theta)_k + \sum_{kl} [T_2(\theta)]_{kl} y^*(\theta)_k y^*(\theta)_l
-  $$
-  where we have that:
-  $$
-  \vec{F}(\vec{x}, \vec{y}^*(\vec{x}, \theta); \theta) = \vec{0}
-  $$
-
-  As a result the derivatives are given by:
-  $$
-  \frac{\partial J(\theta)}{\partial \theta_i} =  \frac{1}{|D|} \sum_{m\in D} \frac{2}{\gamma^2_{exp,m}} (\gamma_m(\theta) - \gamma_{exp,m})\frac{\partial \gamma_m(\theta)}{\partial \theta_i}
-  $$
-
-  $$
-  \frac{\partial \gamma(\theta)}{\partial\theta_i} = \sum_k \left(\frac{\partial}{\partial \theta_i} [T_1(\theta)]_k \right) y^*_k 
-  + \sum_{ln} \left( \frac{\partial}{\partial \theta_i} [T_2(\theta)]_{ln}\right) y^*_l y^*_n 
-  + \sum_k[T_1(\theta)]_k \frac{\partial y^*_k}{\partial\theta_i}  
-  + \sum_{ln} \left[ T_2(\theta) + T^T_2(\theta) \right]_{ln} y^*_l \frac{\partial y^*_n}{\partial \theta_i}
-  $$
-
-  Using the **Implicit Differentiation** Theorem:
-  $$
-  \frac{d F_i}{d\theta_m} = 0 \implies \frac{\partial F_i}{\partial \theta_m} + \sum_n\frac{\partial F_i}{\partial y_n} \frac{\partial y_n}{\partial \theta_m} = 0 \newline
-  \Leftrightarrow [\partial_{\theta} F]_{im} + \sum_n [\partial_y F]_{in} [\partial_{\theta} y]_{nm} = 0 \newline
-  \implies [\partial_{\theta}F] + [\partial_y F].[\partial_{\theta}y] = \mathbb{0} \newline
-  $$
-  where  we have that: $[\partial_{\theta} F] \in \mathbb{R}^{\#F \times \#\theta}$, $[\partial_{y} F] \in \mathbb{R}^{\#F \times \#y}$ and $[\partial_{\theta} y] \in \mathbb{R}^{\#y \times \#\theta}$ .  Since, $[\partial_y F]$ is not a square matrix, this system of equations is solved in the least-square sense.
-
-  ![Scaling Plot](/Users/joseafonso/Desktop/PlasmaDM/study_opt_grad_based/scaling_grads.png)
-
-- Model-based methods: To be explored (Surrogate model with GP, Active Learning, ...)
-
-Furthemore, the implementation allows multiprocessing.
+The scripts for the optimization analyses are located in the directories:`study_opt_hierarchical/`, `study_opt_model/` and `study_opt_local/`.

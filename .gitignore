@@ -8,7 +8,17 @@ Simulator_Old/
 LoKI_v3.1/
 LoKI_Old/
 notes/
+old_code/
 
+
+study_opt_grad_based/attempts_new
+study_opt_hierarchical/attempts_new
+study_opt_model_free/attempts_new
+tests/
+Buffer_Data/test_data
+reactions/aux_schemes
+figures/figures_old
+figures/results
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,0 +1,28 @@
+Results Grad-Based Method:
+Configurations:
+lower_bounds: [1.e-08 1.e-08 0.e+00 1.e-08 1.e-08 0.e+00 1.e-05 1.e-05 1.e-05 1.e-05]
+upper_bounds: [ 0.1  0.1 30.   0.1  0.1 30.   1.   1.   1.   1. ]
+de_max_iter: 10
+top_k: 1
+num_workers: 8
+B: [2, 5, 9]
+x_base: [1.17015508e-04 8.04584335e-03 1.90338871e+01 3.62786701e-05
+ 8.00803596e-02 1.76810866e+01 4.16803000e-01 6.59614696e-01
+ 5.33004694e-01 6.72896882e-02]
+params_before_refinement: [1.17015508e-04 8.04584335e-03 1.90338871e+01 3.62786701e-05
+ 8.00803596e-02 1.76810866e+01 4.16803000e-01 6.59614696e-01
+ 5.33004694e-01 6.72896882e-02]
+blocks: [[1, 3, 8], [0, 4, 6, 7], [2, 5, 9]]
+
+Optimization Results:
+Best Result:
+Message: CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH
+Status: 0
+Success: True
+Iterations: 1
+Loss: 0.048721340349759244
+Parameters: [0.00011701550798325994, 0.00804584335475786, 19.03388711305052, 3.627867009593145e-05, 0.0800803596024788, 17.68108656499368, 0.4168030004901753, 0.6596146961403027, 0.5330046942481367, 0.06728968821370394]
+Iterations: 1
+Function Evaluations: 12
+Gradient Evaluations: 12
+
