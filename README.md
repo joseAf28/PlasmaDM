@@ -8,7 +8,7 @@ _A Python framework for modeling, optimizing, and propagating uncertainty in pla
 ## Table of Contents
 
 1. Introduction
-4. Theoritical formulation
+4. Theoretical formulation
 5. Project Structure
 
 
@@ -128,7 +128,5 @@ The project is composed of the following classes and methods that perform the fo
 - The `ErrorPropagation` class allows us to propagate errors from the input experimental conditions to the output observable.
 
 ![Code Structure](./figures/Code_Structure.png)
-
-
 
 The scripts for the optimization analyses are located in the directories:`study_opt_hierarchical/`, `study_opt_model/` and `study_opt_local/`.
