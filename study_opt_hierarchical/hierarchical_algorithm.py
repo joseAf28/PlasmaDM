@@ -69,6 +69,12 @@ class HierarchicalOptimizer:
         self.phi_prev = None
         self.loss_prev = float('inf')
         
+        # We store the inputs and the FULL outputs of the last evaluation
+        self._cache = {
+            'params': None,
+            'result': None  # Will hold (loss, r, J, etc...)
+        }
+        
         # Tracking
         self.history = {'best_loss': [], 'iters': [], 'best_params': [], 'loss': [], 'delta_phi': [], 'delta_s': []}
         self.iter_calls = 0
@@ -90,25 +96,45 @@ class HierarchicalOptimizer:
             self.pipeline = pipeline
     
     
-    def _track_iters(self, loss, params):
+    def _track_iters(self, loss, params, string_flag=""):
         
         if loss < self.best_loss:
             self.best_loss = loss
             self.best_params = params
-        
-        self.iter_calls += 1
         
         self.history['best_loss'].append(self.best_loss)
         self.history['iters'].append(self.iter_calls)
         self.history['best_params'].append(self.best_params)
         
         if self.print_flag:
-            print("loss: ", loss, "iter: ", self.iter_calls)
+            print(string_flag, "loss: ", loss, "iter: ", self.iter_calls)
+    
+    
+    def _evaluate_objective(self, params):
+        """
+        Smart evaluator that acts as a cache of size 1.
+        If 'params' matches the last evaluation, return cached result.
+        Otherwise, compute and update cache.
+        """
+        # Check if cache is valid (using allclose for float safety)
+        if (self._cache['params'] is not None and 
+            np.allclose(params, self._cache['params'], rtol=1e-14, atol=1e-14)):
+            return self._cache['result']
         
+        # Cache Miss: Compute
+        full_result = self.opt_obj.objective_function_diff_full(params)
+        
+        self.iter_calls += 1
+        
+        # Update Cache
+        self._cache['params'] = params.copy()
+        self._cache['result'] = full_result
+        
+        return full_result
     
     
     def _loss_wrapper(self, params):
-        loss, _, _, _, _, _ = self.opt_obj.objective_function_diff_full(params)
+        loss, _, _, _, _, _ = self._evaluate_objective(params)
         
         self._track_iters(loss, params)
         return loss
@@ -125,40 +151,43 @@ class HierarchicalOptimizer:
         # (Simplified logic for brevity - insert your exact logic here)
         # For prototype, reusing the logic from previous messages:
         J_rows = []
-        loss, r_base, _, _, _, _ = self.opt_obj.objective_function_diff_full(self.phi)
-        r_base = np.array(r_base)
+        loss, r_base, _, _, _, _ = self._evaluate_objective(self.phi)
+        self._track_iters(loss, self.phi, string_flag="base")
         
-        self._track_iters(loss, self.phi)
+        r_base = np.array(r_base)
         
         for i in range(len(self.phi)):
             p = self.phi.copy(); p[i] += self.h_step
-            loss, r_new, _, _, _, _ = self.opt_obj.objective_function_diff_full(p)
-            J_rows.append((np.array(r_new) - r_base) / self.h_step)
             
+            loss, r_new, _, _, _, _ = self._evaluate_objective(p)
             self._track_iters(loss, p)
+            
+            J_rows.append((np.array(r_new) - r_base) / self.h_step)
+
         
         self._process_hessian(np.array(J_rows).T, percent_info, tau)
+
 
     def decompose_stochastic(self, k_samples=10, percent_info=0.95, tau=1e-4):
         """Stochastic k+1 evaluation decomposition."""
         print(f"\n[Step] Stochastic Decomposition (k={k_samples})")
-        # 1. Random Matrix
+        # Random Matrix
         Omega = np.random.normal(0, 1, size=(len(self.phi), k_samples))
         Omega, _ = np.linalg.qr(Omega)
         
-        # 2. Sketch
-        loss, r_base, _, _, _, _ = self.opt_obj.objective_function_diff_full(self.phi)
-        
-        self._track_iters(loss, self.phi)
+        # Sketch
+        # loss, r_base, _, _, _, _ = self.opt_obj.objective_function_diff_full(self.phi)
+        loss, r_base, _, _, _, _ = self._evaluate_objective(self.phi)
+        self._track_iters(loss, self.phi, string_flag="base")
         
         r_base = np.array(r_base)
         Y_cols = []
         for i in range(k_samples):
             p = self.phi + self.h_step * Omega[:, i]
-            loss, r, _, _, _, _ = self.opt_obj.objective_function_diff_full(p)
-            Y_cols.append((np.array(r) - r_base) / self.h_step)
-            
+            loss, r, _, _, _, _ = self._evaluate_objective(p)
             self._track_iters(loss, p)
+            
+            Y_cols.append((np.array(r) - r_base) / self.h_step)
         
         Y = np.array(Y_cols).T
         F_small = Y.T @ Y
@@ -323,8 +352,8 @@ class HierarchicalOptimizer:
             print("  -> Realigning Subspace to find new Stiff directions...")
             
             # Compute Reduced Hessian (Cost: k evals)
-            loss, r_base, _, _, _, _ = self.opt_obj.objective_function_diff_full(self.phi)
-            self._track_iters(loss, self.phi)
+            loss, r_base, _, _, _, _ = self.self._evaluate_objective(self.phi)
+            self._track_iters(loss, self.phi, string_flag="Base: ")
             
             
             r_base = np.array(r_base)
@@ -332,8 +361,7 @@ class HierarchicalOptimizer:
             
             for i in range(self.Vl.shape[1]):
                 p = self.phi + self.h_step * self.Vl[:, i]
-                loss, r, _, _, _, _ = self.opt_obj.objective_function_diff_full(p)
-                
+                loss, r, _, _, _, _ = self.self._evaluate_objective(p)
                 self._track_iters(loss, p)
                 
                 J_cols.append((np.array(r) - r_base) / self.h_step)
@@ -361,18 +389,19 @@ class HierarchicalOptimizer:
         if self.Vl is None or self.Vl.shape[1] == 0: return
         print("\n[Step] Realigning Sloppy Space")
         
-        loss, r_base, _, _, _, _ = self.opt_obj.objective_function_diff_full(self.phi)
+        loss, r_base, _, _, _, _ = self._evaluate_objective(self.phi)
+        self._track_iters(loss, self.phi, string_flag="Base: ")
+        
         r_base = np.array(r_base)
         J_cols = []
         
-        self._track_iters(loss, self.phi)
         
         for i in range(self.Vl.shape[1]):
             p = self.phi + self.h_step * self.Vl[:, i]
-            loss, r, _, _, _, _ = self.opt_obj.objective_function_diff_full(p)
-            J_cols.append((np.array(r) - r_base) / self.h_step)
-            
+            loss, r, _, _, _, _ = self._evaluate_objective(p)
             self._track_iters(loss, p)
+            
+            J_cols.append((np.array(r) - r_base) / self.h_step)
             
         J_red = np.array(J_cols).T
         evals, evecs = np.linalg.eigh(J_red.T @ J_red)
@@ -382,6 +411,110 @@ class HierarchicalOptimizer:
         self.Vl = self.Vl @ evecs[:, idx]
         print(f"  -> Realigned. Top Eigenvals: {evals[idx][:3]}")
 
+
+
+    ####*** Different optimization procedure
+    
+    def optimize_combined_subspace(self, max_iter=200):
+        """
+        Optimizes over the FULL Reduced Subspace (Union of Stiff + Sloppy) using Nelder-Mead.
+        """
+        # 1. Construct V_full (Union of Vs and Vl)
+        if self.Vs is None: V_full = self.Vl
+        elif self.Vl is None: V_full = self.Vs
+        else: V_full = np.hstack([self.Vs, self.Vl])
+
+        if V_full is None or V_full.shape[1] == 0: return
+        k_total = V_full.shape[1]
+        
+        if max_iter < k_total + 20:
+            print(f"  [Skipping] Budget {max_iter} too low.")
+            return
+
+        print(f"\n[Step] Combined Manifold Opt (Dim:{k_total}): Aligning -> Nelder-Mead")
+
+        # =====================================================================
+        # PHASE 1: REALIGNMENT (Decoupling)
+        # =====================================================================
+        # ... (Same Finite Difference & Eigen-decomposition logic as before) ...
+        loss_base, r_base, _, _, _, _ = self._evaluate_objective(self.phi)
+        self._track_iters(loss_base, self.phi, string_flag="Base: ")
+        r_base = np.array(r_base)
+        
+        J_cols = []
+        for i in range(k_total):
+            p = self.phi + self.h_step * V_full[:, i]
+            loss, r, _, _, _, _ = self._evaluate_objective(p)
+            self._track_iters(loss, p)
+            J_cols.append((np.array(r) - r_base) / self.h_step)
+
+        J_red = np.array(J_cols).T
+        evals, evecs = np.linalg.eigh(J_red.T @ J_red)
+        
+        # Sort Stiff -> Sloppy
+        idx = np.argsort(evals)[::-1]
+        evecs_sorted = evecs[:, idx]
+        evals_sorted = evals[idx]
+        
+        # Rotate Basis
+        V_aligned = V_full @ evecs_sorted
+        print(f"  -> Aligned Spectrum: {evals_sorted}")
+
+        # =====================================================================
+        # PHASE 2: ADAPTIVE NELDER-MEAD
+        # =====================================================================
+        
+        def manifold_objective(w):
+            theta_candidate = np.abs(self.phi + V_aligned @ w)
+            return self._loss_wrapper(theta_candidate)
+        
+        budget_left = max_iter - k_total
+        wrapped_obj, get_best = make_tracking_limited_fun(manifold_objective, budget_left)
+        
+        # --- SMART SIMPLEX INITIALIZATION ---
+        # We need a custom initial simplex.
+        # Stiff directions (low index): We are already close, so small step.
+        # Sloppy directions (high index): We need to explore, so larger step.
+        initial_simplex = np.zeros((k_total + 1, k_total))
+        
+        # Base point is 0 (current location)
+        initial_simplex[0] = 0.0 
+        
+        for i in range(k_total):
+            # Eigenvalues (evals_sorted) represent curvature.
+            # Step size inversely proportional to curvature (sqrt(lambda)).
+            # If lambda is tiny (sloppy), step is large. If lambda is huge (stiff), step is small.
+            # We add a clamp to prevent steps from being massive or microscopic.
+            curvature = max(1e-9, evals_sorted[i])
+            step_scale = 0.1 / (np.sqrt(curvature) + 1e-5) 
+            step_scale = np.clip(step_scale, 0.01, 0.5) # Clamp step size
+            
+            initial_simplex[i+1, i] = step_scale
+
+        print(f"  -> Optimizing (Nelder-Mead, Budget: {budget_left})...")
+        
+        try:
+            minimize(wrapped_obj, 
+                     np.zeros(k_total), 
+                     method='Nelder-Mead', 
+                     options={
+                         'initial_simplex': initial_simplex,
+                         'xatol': 1e-4, 
+                         'fatol': 1e-4,
+                         'adaptive': True  # Important for high dimensional spaces
+                     })
+            w_best, f_best = get_best()
+            status = "Converged"
+        except TooManyEvals as e:
+            w_best, f_best = e.best_x, e.best_fun
+            status = "Max Evals"
+
+        if w_best is not None:
+            self.phi = np.abs(self.phi + V_aligned @ w_best)
+            self.history['loss'].append(f_best)
+            print(f"  -> Finished ({status}). Loss: {f_best:.6f}")
+            
+        
     # =========================================================================
     #  STEP 5: CONVERGENCE CHECK
     # =========================================================================
