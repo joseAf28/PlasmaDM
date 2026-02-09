@@ -2,9 +2,11 @@
 Buffer_Data/test_data
 Buffer_Data/other
 
-Experimental_Data/CO
-Experimental_Data/PaperMetasables
-Experimental_Data/TD
+# Experimental_Data/CO
+# Experimental_Data/PaperMetasables
+# Experimental_Data/TD
+
+Experimental_Data/other
 
 figures/
 figures_new/
