@@ -218,7 +218,6 @@ class HierarchicalOptimizer:
         ks = min(ks, len(evals))
         
         if ks < len(evals):
-            # Ratio of first sloppy to last stiff? Or first sloppy to first sloppy?
             # Your logic: compare sloppy eigenvalues relative to the cutoff
             kl = int(np.count_nonzero((evals[ks:] / (evals[ks]+1e-16)) >= tau))
         else:
@@ -471,8 +470,6 @@ class HierarchicalOptimizer:
         budget_left = max_iter - k_total
         wrapped_obj, get_best = make_tracking_limited_fun(manifold_objective, budget_left)
         
-        # --- SMART SIMPLEX INITIALIZATION ---
-        # We need a custom initial simplex.
         # Stiff directions (low index): We are already close, so small step.
         # Sloppy directions (high index): We need to explore, so larger step.
         initial_simplex = np.zeros((k_total + 1, k_total))
