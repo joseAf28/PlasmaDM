@@ -2,7 +2,12 @@
 Buffer_Data/test_data
 Buffer_Data/other
 
+Experimental_Data/CO
+Experimental_Data/PaperMetasables
+Experimental_Data/TD
+
 figures/
+figures_new/
 
 LoKI_v3/
 LoKI_v3.1/
@@ -14,7 +19,6 @@ parameters/
 
 reactions/aux_schemes
 
-
 study_opt_hierarchical/old
 
 study_opt_local/others
@@ -22,8 +26,10 @@ study_opt_local/outcmaes
 
 study_opt_model/others
 
-tests/
+study_validation_model/results
 
+tests/
+utils/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

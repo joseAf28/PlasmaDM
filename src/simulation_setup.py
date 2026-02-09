@@ -3,7 +3,7 @@ import scipy as sp
 import numpy as np
 import src.Simulator as sim_system
 
-# --- 1. Global Constants ---
+# Global Constants
 const_dict = {
     "F0": 1.5e15,           # cm^-2
     "S0": 3e13,             # cm^-2
@@ -12,15 +12,7 @@ const_dict = {
 }
 
 
-# --- 2. Initial State ---
-initial_state_dict = {
-    'O_F': 0.1, 'O2_F': 0.1, 'O_S': 0.1, 'Vdb_S': 0.1, 
-    'Odb_S': 0.1, 'CO_F': 0.1, 'CO2_F': 0.1, 'CO_S': 0.1, 
-    'COdb_S': 0.0
-}
-
-
-# --- 3. Helper Functions ---
+# Helper Functions
 def compute_flux(const_dict, exp_dict, specie, molar_mass):
     den = exp_dict.get(specie, 0.0)
     v_th = np.sqrt((8.0 * const_dict['R'] * 1000 * exp_dict['Tnw']) / (molar_mass * np.pi))
@@ -50,21 +42,21 @@ def create_common_simulator(base_path, reactions_file="reactions/reactionsComple
     }
 
 
-    # --- 2. Initial State ---
+    # Initial State
     initial_state_dict = {
         'O_F': 0.1, 'O2_F': 0.1, 'O_S': 0.1, 'Vdb_S': 0.1, 
         'Odb_S': 0.1, 'CO_F': 0.1, 'CO2_F': 0.1, 'CO_S': 0.1, 
         'COdb_S': 0.0
     }
-        
-    # 1. Setup Paths
+
+    # Setup Paths
     reactions_file = os.path.join(base_path, reactions_file)
     output_folder_path = os.path.join(base_path, "Buffer_Data")
     exp_file = os.path.join(output_folder_path, data_file)
     
     print("Data Buffer: ", exp_file)
 
-    # 2. Setup Transformations
+    # Setup Transformations
     interpolator = get_interpolator()
     
     transformations_exp = {
@@ -79,7 +71,7 @@ def create_common_simulator(base_path, reactions_file="reactions/reactionsComple
         'Ion':      lambda const_dict, exp_dict: 1e14 * exp_dict["current"]
     }
 
-    # 3. Instantiate Simulator
+    # Instantiate Simulator
     sim = sim_system.Simulator(
         reactions_file, 
         const_dict, 
